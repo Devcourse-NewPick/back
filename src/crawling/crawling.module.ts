@@ -1,18 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import axios from 'axios';
-import * as cheerio from 'cheerio';
+import { Module } from '@nestjs/common';
+import { CrawlingService } from './crawling.service';
 
-@Injectable()
-export class CrawlingService {
-  async getNews() {
-    const { data } = await axios.get('https://example.com/news');
-    const $ = cheerio.load(data);
-    const headlines = [];
-
-    $('h2.title').each((i, el) => {
-      headlines.push($(el).text());
-    });
-
-    return headlines;
-  }
-}
+@Module({
+  providers: [CrawlingService],
+  exports: [CrawlingService], // 필요한 경우 외부에서 사용할 수 있도록 내보냄
+})
+export class CrawlingModule {}
