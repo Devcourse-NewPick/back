@@ -7,9 +7,10 @@ import { AiSummaryModule } from './ai-summary/ai-summary.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { AiSummaryService } from './ai-summary/ai-summary.service';
 import { FeedbackModule } from './feedback/feedback.module';
+import { MongoModule } from './database/mongo/mongo.module';
 
 @Module({
-  imports: [AuthModule, CrawlingModule, AiSummaryModule, NewsletterModule, FeedbackModule],
+  imports: [AuthModule, CrawlingModule, AiSummaryModule, NewsletterModule, FeedbackModule, MongoModule],
   controllers: [AppController],
   providers: [AppService, AiSummaryService],
 })
