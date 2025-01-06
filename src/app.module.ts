@@ -8,9 +8,22 @@ import { NewsletterModule } from './newsletter/newsletter.module';
 import { AiSummaryService } from './ai-summary/ai-summary.service';
 import { FeedbackModule } from './feedback/feedback.module';
 import { MongoModule } from './database/mongo/mongo.module';
+import { ElasticsearchModule } from './database/elasticsearch/elasticsearch.module';
+import { RedisDatabaseModule } from './database/redis/redis.module';
+import { RedisModule } from './database/redis/redis.module';
 
 @Module({
-  imports: [AuthModule, CrawlingModule, AiSummaryModule, NewsletterModule, FeedbackModule, MongoModule],
+  imports: [
+    AuthModule,
+    CrawlingModule,
+    AiSummaryModule,
+    NewsletterModule,
+    FeedbackModule,
+    MongoModule,
+    ElasticsearchModule,
+    RedisDatabaseModule,
+    RedisModule,
+  ],
   controllers: [AppController],
   providers: [AppService, AiSummaryService],
 })
