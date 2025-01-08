@@ -1,0 +1,146 @@
+// MySQL Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/mysql"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url      = "mysql://root:root@localhost:3308/newpick"
+}
+
+// User 테이블
+model User {
+  id                       Int      @id @default(autoincrement())
+  email                    String   @unique
+  password                 String
+  username                 String?
+  profileImg               String?
+  interests                Json?
+  timezone                 String   @default("UTC")
+  frequency                String   @default("weekly") // 발송 주기
+  role                     String   @default("user")
+  notificationPreferences  Json?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  subscribers              Subscriber[]
+  oAuthTokens             OAuthToken[]
+  newsletters             Newsletter[]
+  feedbacks               Feedback[]
+  retryQueues             RetryQueue[]
+  newsletterArchives      NewsletterArchive[]
+
+  @@map("users")
+}
+
+// Subscribers 테이블
+model Subscriber {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  startedAt DateTime @default(now())
+  endAt     DateTime?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscribers")
+}
+
+// OAuthToken 테이블
+model OAuthToken {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  accessToken  String   @mysql.Text
+  refreshToken String   @mysql.Text
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("oauth_tokens")
+}
+
+// Newsletter 테이블
+model Newsletter {
+  id         Int      @id @default(autoincrement())
+  title      String
+  content    String   @mysql.Text
+  categoryId Int
+  userId     Int
+  viewcount  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   NewsCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  feedbacks  Feedback[]
+  archives   NewsletterArchive[]
+
+  @@map("newsletters")
+}
+
+// NewsCategory 테이블
+model NewsCategory {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?   @mysql.Text
+
+  newsletters Newsletter[]
+
+  @@map("news_categories")
+}
+
+// Feedback 테이블
+model Feedback {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  newsletterId  Int
+  rating        Int
+  comments      String?  @mysql.Text
+  createdAt     DateTime @default(now())
+
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter    Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+
+  @@map("feedbacks")
+}
+
+// RetryQueue 테이블
+model RetryQueue {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  email     String
+  status    String   @default("대기 중")
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("retry_queues")
+}
+
+// NewsletterArchive 테이블
+model NewsletterArchive {
+  id           Int      @id @default(autoincrement())
+  newsletterId Int
+  userId       Int
+  sentAt       DateTime
+  archiveDate  DateTime @default(now())
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+
+  @@map("newsletter_archives")
+}
+
+// AiProcessLog 테이블
+model AiProcessLog {
+  id          Int      @id @default(autoincrement())
+  newsId      Int
+  processType String
+  result      String   @mysql.Text
+  duration    Float
+  createdAt   DateTime @default(now())
+  status      String
+
+  @@map("ai_process_logs")
+}

@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: newpick-mongodb
+    command: mongod --bind_ip_all
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - mongodb_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "mongosh", "localhost:27017/test", "--eval", "db.runCommand('ping').ok"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  mysql:
+    image: mysql:8.0.40
+    container_name: newpick-mysql
+    ports:
+      - "3308:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=newpick
+      - MYSQL_ROOT_HOST=%
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - mysql_network
+
+volumes:
+  mongodb_data:
+    name: mongodb_data
+    driver: local
+  mongodb_config:
+    name: mongodb_config
+    driver: local
+  mysql_data:
+    name: mysql_data
+    driver: local
+
+networks:
+  mongodb_network:
+    name: mongodb_network
+    driver: bridge
+  mysql_network:
+    name: mysql_network
+    driver: bridge

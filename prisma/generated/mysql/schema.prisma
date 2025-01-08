@@ -1,0 +1,95 @@
+// MySQL Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/mysql"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url      = "mysql://root:root@localhost:3308/newpick"
+}
+
+// User 테이블
+model User {
+  id                      Int      @id @default(autoincrement())
+  email                   String   @unique
+  password                String
+  username                String?
+  profileImg              String?
+  interests               Json?
+  timezone                String   @default("UTC")
+  role                    String   @default("user")
+  notificationPreferences Json?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  OAuthTokens        OAuthToken[]
+  Newsletters        Newsletter[]
+  Feedbacks          Feedback[]
+  RetryQueues        RetryQueue[]
+  NewsletterArchives NewsletterArchive[]
+}
+
+// OAuthToken 테이블
+model OAuthToken {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Newsletter 테이블
+model Newsletter {
+  id         Int      @id @default(autoincrement())
+  title      String
+  content    String
+  templateId Int?
+  frequency  String   @default("daily")
+  userId     Int
+  createdAt  DateTime @default(now())
+
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Feedbacks Feedback[]
+  Archives  NewsletterArchive[]
+}
+
+// Feedback 테이블
+model Feedback {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  newsletterId Int
+  rating       Int
+  comments     String?
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+}
+
+// RetryQueue 테이블
+model RetryQueue {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  email     String
+  status    String   @default("대기 중")
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// NewsletterArchive 테이블
+model NewsletterArchive {
+  id           Int      @id @default(autoincrement())
+  newsletterId Int
+  userId       Int
+  sentAt       DateTime
+  archiveDate  DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+}

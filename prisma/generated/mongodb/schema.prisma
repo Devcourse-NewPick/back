@@ -1,0 +1,25 @@
+// MongoDB Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/mongodb"
+}
+
+datasource mongodb {
+  provider = "mongodb"
+  url      = "mongodb://root:root@localhost:27017/newpick?authSource=admin&directConnection=true"
+}
+
+// CrawledNews 테이블
+model CrawledNews {
+  id           String    @id @default(auto()) @map("_id") @mongodb.ObjectId
+  title        String
+  url          String    @unique
+  summary      String?
+  source       String?
+  countryCode  String?
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  categoryName String[]
+  img          String?
+}
