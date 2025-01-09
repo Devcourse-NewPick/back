@@ -1,27 +1,72 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo
-    container_name: newpick-mongodb
-    command: mongod --bind_ip_all
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=root
-    volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-    networks:
-      - mongodb_network
+  mongo1:
+    image: mongo:latest
+    hostname: newpick-mongo1
+    container_name: newpick-mongo1
     restart: always
-    healthcheck:
-      test: ["CMD", "mongosh", "localhost:27017/test", "--eval", "db.runCommand('ping').ok"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo1_data:/data/db
+      - type: bind
+        source: ./mongodb/mongodb.key
+        target: /data/mongodb.key
+        read_only: true
+    command: mongod --replSet myReplicaSet --keyFile /data/mongodb.key --bind_ip_all
+    user: mongodb
+    networks:
+      - mongo_network
+
+  mongo2:
+    image: mongo:latest
+    hostname: newpick-mongo2
+    container_name: newpick-mongo2
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    depends_on:
+      - mongo1
+    ports:
+      - 27018:27017
+    volumes:
+      - mongo2_data:/data/db
+      - type: bind
+        source: ./mongodb/mongodb.key
+        target: /data/mongodb.key
+        read_only: true
+    command: mongod --replSet myReplicaSet --keyFile /data/mongodb.key --bind_ip_all
+    user: mongodb
+    networks:
+      - mongo_network
+
+  mongo3:
+    image: mongo:latest
+    hostname: newpick-mongo3
+    container_name: newpick-mongo3
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    depends_on:
+      - mongo2
+    ports:
+      - 27019:27017
+    volumes:
+      - mongo3_data:/data/db
+      - type: bind
+        source: ./mongodb/mongodb.key
+        target: /data/mongodb.key
+        read_only: true
+    command: mongod --replSet myReplicaSet --keyFile /data/mongodb.key --bind_ip_all
+    user: mongodb
+    networks:
+      - mongo_network
 
   mysql:
     image: mysql:8.0.40
@@ -47,19 +92,14 @@ services:
       - mysql_network
 
 volumes:
-  mongodb_data:
-    name: mongodb_data
-    driver: local
-  mongodb_config:
-    name: mongodb_config
-    driver: local
+  mongo1_data:
+  mongo2_data:
+  mongo3_data:
   mysql_data:
-    name: mysql_data
-    driver: local
 
 networks:
-  mongodb_network:
-    name: mongodb_network
+  mongo_network:
+    name: mongo_network
     driver: bridge
   mysql_network:
     name: mysql_network
