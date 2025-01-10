@@ -209,14 +209,14 @@ docker-compose up -d
 
 # 복제 세트 초기화 (mongo1 컨테이너에 접속)
 docker exec -it newpick-mongo1 mongosh -u root -p root --eval '
-rs.initiate({
+rs.reconfig({
   _id: "myReplicaSet",
   members: [
-    {_id: 0, host: "newpick-mongo1:27017"},
-    {_id: 1, host: "newpick-mongo2:27017"},
-    {_id: 2, host: "newpick-mongo3:27017"}
+    {_id: 0, host: "newpick-mongo1:27017", priority: 2},
+    {_id: 1, host: "newpick-mongo2:27017", priority: 1},
+    {_id: 2, host: "newpick-mongo3:27017", priority: 1}
   ]
-})'
+}, {force: true})'
 ```
 
 ### 2. 데이터베이스 접속 정보
