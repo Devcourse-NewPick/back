@@ -1,4 +1,5 @@
 import { PrismaClient } from '../prisma/generated/mongodb';
+import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
 
@@ -7,14 +8,14 @@ async function main() {
     // CrawledNews 생성
     const news = await prisma.crawledNews.create({
       data: {
-        title: 'Test News Title',
-        url: 'https://example.com/test-news',
-        summary: 'This is a test news article summary',
-        source: 'Test News Source',
-        countryCode: 'KR',
-        publishedAt: new Date(),
-        categoryName: ['Technology', 'AI'],
-        img: 'https://example.com/test-image.jpg',
+        title: faker.lorem.sentence(),
+        url: faker.internet.url(),
+        summary: faker.lorem.sentence(),
+        source: faker.company.name(),
+        countryCode: faker.helpers.arrayElement(['KR', 'US', 'JP', 'CN']),
+        publishedAt: faker.date.recent(),
+        categoryName: [faker.helpers.arrayElement(['Technology', 'AI'])],
+        img: faker.image.url(),
       },
     });
 
@@ -24,7 +25,7 @@ async function main() {
     // 생성된 뉴스 조회
     const foundNews = await prisma.crawledNews.findUnique({
       where: {
-        url: 'https://example.com/test-news',
+        url: news.url,
       },
     });
 

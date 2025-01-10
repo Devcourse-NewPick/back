@@ -1,5 +1,5 @@
 import { PrismaClient } from '../prisma/generated/mysql';
-
+import { faker } from '@faker-js/faker';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -7,9 +7,9 @@ async function main() {
     // User 생성
     const user = await prisma.user.create({
       data: {
-        email: 'test@example.com',
-        password: 'test1234',
-        username: 'TestUser',
+        email: faker.internet.email(),
+        password: faker.internet.password(),
+        username: faker.person.fullName(),
         role: 'user',
       },
     });
@@ -19,8 +19,8 @@ async function main() {
     // NewsCategory 생성
     const category = await prisma.newsCategory.create({
       data: {
-        name: 'Technology',
-        description: 'Technology related news',
+        name: faker.lorem.word(),
+        description: faker.lorem.sentence(),
       },
     });
 
@@ -29,8 +29,8 @@ async function main() {
     // Newsletter 생성
     const newsletter = await prisma.newsletter.create({
       data: {
-        title: 'Test Newsletter',
-        content: 'This is a test newsletter content',
+        title: faker.lorem.sentence(),
+        content: faker.lorem.paragraph(),
         userId: user.id,
         categoryId: category.id,
       },
