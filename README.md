@@ -191,53 +191,54 @@ npm run start:dev
 
 ## 데이터베이스 설정 가이드
 
-### 1. Docker Compose로 데이터베이스 실행
+### 1. MongoDB 복제 세트 설정
 
+#### MongoDB 키 파일 생성
+```bash
+# 실행 권한 부여
+chmod +x create-keyfile.sh
+
+# 스크립트 실행
+./create-keyfile.sh
+```
+
+#### MongoDB 복제 세트 실행
 ```bash
 # Docker 컨테이너 실행
 docker-compose up -d
 
-# 컨테이너 상태 확인
-docker-compose ps
-```
-
-### 2. MongoDB 초기 설정
-
-```bash
-# MongoDB 컨테이너에 접속
-docker exec -it newpick-mongodb mongosh
-
-# admin 데이터베이스로 전환
-use admin
-
-# root 사용자로 인증
-db.auth('root', 'root')
-
-# newpick 데이터베이스로 전환
-use newpick
-
-# newpick 데이터베이스에 대한 사용자 생성
-db.createUser({
-  user: "root",
-  pwd: "root",
-  roles: [
-    { role: "readWrite", db: "newpick" },
-    { role: "dbAdmin", db: "newpick" }
+# 복제 세트 초기화 (mongo1 컨테이너에 접속)
+docker exec -it newpick-mongo1 mongosh -u root -p root --eval '
+rs.initiate({
+  _id: "myReplicaSet",
+  members: [
+    {_id: 0, host: "newpick-mongo1:27017"},
+    {_id: 1, host: "newpick-mongo2:27017"},
+    {_id: 2, host: "newpick-mongo3:27017"}
   ]
-})
+})'
 ```
 
-### 3. MySQL 초기 설정
+### 2. 데이터베이스 접속 정보
 
-```bash
-# MySQL 컨테이너에 접속
-docker exec -it newpick-mysql mysql -uroot -proot
+#### MongoDB
+- **Primary**: localhost:27017
+- **Secondary 1**: localhost:27018
+- **Secondary 2**: localhost:27019
+- **Database**: newpick
+- **Username**: root
+- **Password**: root
+- **Connection URL**: `mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet`
 
-# 데이터베이스 생성
-CREATE DATABASE IF NOT EXISTS newpick;
-```
+#### MySQL
+- **Host**: localhost
+- **Port**: 3308
+- **Database**: newpick
+- **Username**: root
+- **Password**: root
+- **Connection URL**: `mysql://root:root@localhost:3308/newpick`
 
-### 4. Prisma 스키마 적용
+### 3. Prisma 스키마 적용
 
 ```bash
 # MongoDB 스키마 적용
@@ -249,45 +250,20 @@ npx prisma generate --schema=prisma/mysql.schema.prisma
 npx prisma migrate dev --schema=prisma/mysql.schema.prisma --name init
 ```
 
-### 5. 데이터베이스 연결 확인
+### DB 세팅 테스트
+`npm run test:mongodb`
 
-```bash
-# MongoDB 연결 테스트
-npm run test:mongodb
+`npm run test:mysql`
 
-# Prisma Studio로 데이터베이스 확인 (MongoDB)
-npx prisma studio --schema=prisma/mongodb.schema.prisma
 
-# Prisma Studio로 데이터베이스 확인 (MySQL)
-npx prisma studio --schema=prisma/mysql.schema.prisma
-```
-
-### 데이터베이스 접속 정보
-
-#### MongoDB
-- **Host**: localhost
-- **Port**: 27017
-- **Database**: newpick
-- **Username**: root
-- **Password**: root
-- **Connection URL**: `mongodb://root:root@localhost:27017/newpick?authSource=admin`
-
-#### MySQL
-- **Host**: localhost
-- **Port**: 3308
-- **Database**: newpick
-- **Username**: root
-- **Password**: root
-- **Connection URL**: `mysql://root:root@localhost:3308/newpick`
-
-### GUI 도구 연결
+### 4. GUI 도구 연결
 
 #### MongoDB Compass
 1. MongoDB Compass 설치
 2. 새 연결 생성
 3. 연결 문자열 입력:
 ```
-mongodb://root:root@localhost:27017/newpick?authSource=admin
+mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet
 ```
 
 #### MySQL Workbench
@@ -297,11 +273,12 @@ mongodb://root:root@localhost:27017/newpick?authSource=admin
    - Port: 3308
    - Username: root
    - Password: root
+   - Database: newpick
 
 ### 주의사항
-- 데이터베이스 비밀번호는 프로덕션 환경에서 반드시 변경하여 사용하세요
-- 환경 변수를 통해 연결 정보를 관리하는 것을 권장합니다
-- 컨테이너 재시작 시 데이터는 유지됩니다 (볼륨 마운트)
+- MongoDB 키 파일은 절대로 Git에 커밋하지 마세요
+- prisma/generate, migrations 파일은 commit 하지 마세요
+- 
 
 ## 스키마 & 데이터 관리 가이드
 

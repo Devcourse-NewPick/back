@@ -19,6 +19,7 @@ async function main() {
     });
 
     console.log('Created news:', news);
+    console.log('테스트 완료');
 
     // 생성된 뉴스 조회
     const foundNews = await prisma.crawledNews.findUnique({
