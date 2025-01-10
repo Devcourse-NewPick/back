@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-# back
+# 🚀 back
 
 ## **프로젝트 개요**
 
@@ -328,7 +327,8 @@ Prisma Studio 기능:
 2. 브라우저에서 `http://localhost:5555` 접속
 3. 원하는 모델 선택하여 데이터 관리
 
-# Npm list 버젼 맞추기. **필수**
+# Npm list 버젼 맞추기. **✨필수✨**
+```
 ├── @elastic/elasticsearch@8.17.0
 ├── @nestjs-modules/ioredis@2.0.2
 ├── @nestjs-modules/mailer@2.0.2
@@ -395,3 +395,4 @@ Prisma Studio 기능:
 ├── tsconfig-paths@4.2.0
 ├── typescript@5.7.2
 └── uuid@11.0.4
+```
