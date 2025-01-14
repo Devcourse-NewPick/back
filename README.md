@@ -241,12 +241,12 @@ rs.reconfig({
 
 ```bash
 # MongoDB 스키마 적용
-npx prisma generate --schema=prisma/mongodb.schema.prisma
-npx prisma db push --schema=prisma/mongodb.schema.prisma
+npm run prisma:generate:mongodb
+npm run prisma:push:mongodb
 
 # MySQL 스키마 적용
-npx prisma generate --schema=prisma/mysql.schema.prisma
-npx prisma migrate dev --schema=prisma/mysql.schema.prisma --name init
+npm run prisma:generate:mysql
+npm run prisma:migrate:mysql
 ```
 
 ### DB 세팅 테스트

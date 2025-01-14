@@ -19,7 +19,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:mongodb": "ts-node scripts/test-mongodb.ts",
-    "test:mysql": "ts-node scripts/test-mysql.ts"
+    "test:mysql": "ts-node scripts/test-mysql.ts",
+    "prisma:generate:mongodb": "prisma generate --schema=prisma/mongodb.schema.prisma",
+    "prisma:push:mongodb": "prisma db push --schema=prisma/mongodb.schema.prisma",
+    "prisma:generate:mysql": "prisma generate --schema=prisma/mysql.schema.prisma",
+    "prisma:push:mysql": "prisma migrate dev --schema=prisma/mysql.schema.prisma --name init"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.0",
