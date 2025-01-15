@@ -19,11 +19,13 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:mongodb": "ts-node scripts/test-mongodb.ts",
+    "test:get-mongodb": "ts-node scripts/test-get-mogodata.ts",
     "test:mysql": "ts-node scripts/test-mysql.ts",
     "prisma:generate:mongodb": "prisma generate --schema=prisma/mongodb.schema.prisma",
     "prisma:push:mongodb": "prisma db push --schema=prisma/mongodb.schema.prisma",
     "prisma:generate:mysql": "prisma generate --schema=prisma/mysql.schema.prisma",
-    "prisma:push:mysql": "prisma migrate dev --schema=prisma/mysql.schema.prisma --name init"
+    "prisma:push:mysql": "prisma migrate dev --schema=prisma/mysql.schema.prisma --name init",
+    "prisma:generate": "prisma generate --schema=prisma/mongodb.schema.prisma && prisma generate --schema=prisma/mysql.schema.prisma"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.0",
@@ -38,6 +40,7 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/elasticsearch": "^10.0.2",
     "@nestjs/jwt": "^10.2.0",
+    "@nestjs/mongoose": "^10.1.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/schedule": "^4.1.2",
@@ -54,6 +57,7 @@
     "class-validator": "^0.14.1",
     "dotenv": "^16.4.7",
     "ioredis": "^5.4.2",
+    "mongoose": "^8.9.5",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
     "openai": "^4.77.3",
@@ -109,5 +113,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "schema": "prisma/mongodb.schema.prisma"
   }
 }

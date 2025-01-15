@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 @Injectable()
-export class AiSummaryService {
+export class OpenAiService {
   private readonly openai: OpenAI;
 
   constructor(private configService: ConfigService) {

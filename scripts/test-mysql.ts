@@ -1,6 +1,7 @@
-import { PrismaClient } from '../prisma/generated/mysql';
 import { faker } from '@faker-js/faker';
-const prisma = new PrismaClient();
+import { MysqlPrismaService } from '../prisma/mysql.service';
+
+const prisma = new MysqlPrismaService();
 
 async function main() {
   try {
