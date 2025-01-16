@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
-import { AiSummaryService } from './ai-summary/ai-summary.service';
+import { AiSummaryService } from './ai-summary/openai.service';
 
 describe('AppController', () => {
   let appController: AppController;

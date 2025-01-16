@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { AiSummaryService } from '../src/ai-summary/ai-summary.service';
+import { AiSummaryService } from '../src/ai-summary/openai.service';
 import { NewsletterService } from '../src/newsletter/newsletter.service';
 
 describe('AppController (e2e)', () => {

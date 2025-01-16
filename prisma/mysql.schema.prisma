@@ -1,9 +1,8 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated/mysql"
 }
 
-datasource mysql {
+datasource db {
   provider = "mysql"
   url      = "mysql://root:root@localhost:3308/newpick"
 }
@@ -49,8 +48,8 @@ model Subscriber {
 model OAuthToken {
   id           Int      @id @default(autoincrement())
   userId       Int
-  accessToken  String   @mysql.Text
-  refreshToken String   @mysql.Text
+  accessToken  String   @db.Text
+  refreshToken String   @db.Text
   expiresAt    DateTime
   createdAt    DateTime @default(now())
 
@@ -63,7 +62,7 @@ model OAuthToken {
 model Newsletter {
   id         Int      @id @default(autoincrement())
   title      String
-  content    String   @mysql.Text
+  content    String   @db.Text
   categoryId Int
   userId     Int
   viewcount  Int      @default(0)
@@ -81,7 +80,7 @@ model Newsletter {
 model NewsCategory {
   id          Int       @id @default(autoincrement())
   name        String    @unique
-  description String?   @mysql.Text
+  description String?   @db.Text
 
   newsletters Newsletter[]
 
@@ -94,7 +93,7 @@ model Feedback {
   userId        Int
   newsletterId  Int
   rating        Int
-  comments      String?  @mysql.Text
+  comments      String?  @db.Text
   createdAt     DateTime @default(now())
 
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -135,7 +134,7 @@ model AiProcessLog {
   id          Int      @id @default(autoincrement())
   newsId      Int
   processType String
-  result      String   @mysql.Text
+  result      String   @db.Text
   duration    Float
   createdAt   DateTime @default(now())
   status      String

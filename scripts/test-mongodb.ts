@@ -1,40 +1,32 @@
-import { PrismaClient } from '../prisma/generated/mongodb';
+import { NestFactory } from '@nestjs/core';
 import { faker } from '@faker-js/faker';
+import { AppModule } from '../src/app.module';
+import { CrawlingService } from '../src/crawling/crawling.service';
 
-const prisma = new PrismaClient();
-
-async function main() {
+async function testMongoDBCreation() {
   try {
-    // CrawledNews 생성
-    const news = await prisma.crawledNews.create({
-      data: {
-        title: faker.lorem.sentence(),
-        url: faker.internet.url(),
-        summary: faker.lorem.sentence(),
-        source: faker.company.name(),
-        countryCode: faker.helpers.arrayElement(['KR', 'US', 'JP', 'CN']),
-        publishedAt: faker.date.recent(),
-        categoryName: [faker.helpers.arrayElement(['Technology', 'AI'])],
-        img: faker.image.url(),
-      },
-    });
+    const app = await NestFactory.create(AppModule);
+    const crawlingService = app.get(CrawlingService);
 
-    console.log('Created news:', news);
+    const testData = {
+      title: faker.lorem.sentence(),
+      url: faker.internet.url(),
+      summary: faker.lorem.sentence(),
+      source: faker.company.name(),
+      countryCode: faker.helpers.arrayElement(['KR', 'US', 'JP', 'CN']),
+      publishedAt: faker.date.recent(),
+      categoryName: [faker.helpers.arrayElement(['Technology', 'AI'])],
+      img: faker.image.url(),
+    };
+
+    const createdNews = await crawlingService.create(testData);
+    console.log('생성된 뉴스:', createdNews);
     console.log('테스트 완료');
-
-    // 생성된 뉴스 조회
-    const foundNews = await prisma.crawledNews.findUnique({
-      where: {
-        url: news.url,
-      },
-    });
-
-    console.log('Found news:', foundNews);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('에러 발생:', error);
   } finally {
-    await prisma.$disconnect();
+    process.exit(0);
   }
 }
 
-main();
+testMongoDBCreation();

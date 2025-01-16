@@ -1,9 +1,11 @@
+// prisma.module.ts
 import { Global, Module } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
+import { MysqlPrismaService } from './mysql.service';
 
 @Global()
 @Module({
-  providers: [PrismaService],
-  exports: [PrismaService],
+  imports: [],
+  providers: [MysqlPrismaService],
+  exports: [MysqlPrismaService],
 })
 export class PrismaModule {}

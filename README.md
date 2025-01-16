@@ -190,34 +190,6 @@ npm run start:dev
 
 ## 데이터베이스 설정 가이드
 
-### 1. MongoDB 복제 세트 설정
-
-#### MongoDB 키 파일 생성
-```bash
-# 실행 권한 부여
-chmod +x create-keyfile.sh
-
-# 스크립트 실행
-./create-keyfile.sh
-```
-
-#### MongoDB 복제 세트 실행
-```bash
-# Docker 컨테이너 실행
-docker-compose up -d
-
-# 복제 세트 초기화 (mongo1 컨테이너에 접속)
-docker exec -it newpick-mongo1 mongosh -u root -p root --eval '
-rs.reconfig({
-  _id: "myReplicaSet",
-  members: [
-    {_id: 0, host: "newpick-mongo1:27017", priority: 2},
-    {_id: 1, host: "newpick-mongo2:27017", priority: 1},
-    {_id: 2, host: "newpick-mongo3:27017", priority: 1}
-  ]
-}, {force: true})'
-```
-
 ### 2. 데이터베이스 접속 정보
 
 #### MongoDB
@@ -246,12 +218,11 @@ npm run prisma:push:mongodb
 
 # MySQL 스키마 적용
 npm run prisma:generate:mysql
-npm run prisma:migrate:mysql
+npm run prisma:push:mysql
 ```
 
 ### DB 세팅 테스트
 `npm run test:mongodb`
-
 `npm run test:mysql`
 
 

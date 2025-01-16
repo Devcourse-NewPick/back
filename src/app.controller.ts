@@ -1,12 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
-import { AiSummaryService } from './ai-summary/ai-summary.service';
+import { OpenAiService } from './ai-summary/openai.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly aiSummaryService: AiSummaryService) {}
+  constructor(private readonly openAiService: OpenAiService) {}
 
   @Get()
   async getHello(): Promise<string> {
-    return await this.aiSummaryService.summarizeText('Sample text');
+    return await this.openAiService.summarizeText('Sample text');
   }
 }
