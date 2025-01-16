@@ -6,7 +6,7 @@ export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
   validateUser(email: string, password: string): any {
-    // 실제로는 DB에서 사용자 정보를 조회하고 검증해야 합니다.
+    // 실제로는 DB에서 사용자 정보를 조회하고 검증해야 함.
     if (email === 'test@example.com' && password === 'password') {
       return { id: 1, email };
     }
