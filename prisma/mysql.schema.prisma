@@ -91,8 +91,9 @@ model NewsCategory {
 model Feedback {
   id            Int      @id @default(autoincrement())
   userId        Int
-  newsletterId  Int
-  rating        Int
+  newsletterId  Int      // 뉴스레터와 연결
+  newsId        Int      // 개별 뉴스 또는 기사와 연결
+  likes         Boolean  @default(false) // 추가된 좋아요 필드
   comments      String?  @db.Text
   createdAt     DateTime @default(now())
 
