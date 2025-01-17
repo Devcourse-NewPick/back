@@ -2,11 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import PQueue from '@esm2cjs/p-queue';
 import { CrawlerService } from './crawler.service';
+import { CrawlingRepository } from './crawling.repository';
 
 @Injectable()
 export class CrawlingService {
   constructor(
     private readonly crawlerService: CrawlerService,
+    private readonly crawlingRepository: CrawlingRepository,
   ) {}
 
   private readonly logger = new Logger(CrawlingService.name);
@@ -21,6 +23,14 @@ export class CrawlingService {
   ];
 
   private readonly queue = new PQueue({ concurrency: 5 });
+
+  async crawling(): Promise<any> {
+    const crawledData = await this.crawlingNews();
+    if (crawledData.length) {
+      const saveCrawledData = await this.crawlingRepository.createData(crawledData);
+      this.logger.log(`Successfully processed ${saveCrawledData.length} items`);
+    }
+  }
 
   // 뉴스 섹션 크롤링 (네이버 뉴스 기준)
   async crawlingNews(): Promise<any> {
@@ -52,7 +62,7 @@ export class CrawlingService {
         crawlingResultData.push(...crawlingNewsDetail.filter(news => news !== null));
       }
       // 크롤링 결과 확인
-      this.logger.log(`Number of successfully crawled data: ${crawlingResultData.length}`);
+      this.logger.log(`Successfully crawled ${crawlingResultData.length} items`);
       return crawlingResultData;
     } catch (error) {
       this.logger.error(`Error during crawling: ${error.message}`);
