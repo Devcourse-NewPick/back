@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CrawledNews, CrawledNewsSchema } from './schema/crwaled-news.schema';
+import { CrawlerService } from './crawler.service';
 import { CrawlingService } from './crawling.service';
 import { CrawlingController } from './crawling.controller';
-import { CrawlerService } from './crawler.service';
+import { CrawledNews, CrawledNewsSchema } from './schema/crawling.schema';
 
 @Module({
   imports: [
