@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PagingService } from './paging.service';
 import * as puppeteer from 'puppeteer';
 import PQueue from '@esm2cjs/p-queue';
+import { CrawlerService } from './crawler.service';
 
 @Injectable()
 export class CrawlingService {
   constructor(
-    private readonly pagingService: PagingService,
+    private readonly crawlerService: CrawlerService,
   ) {}
 
   private readonly logger = new Logger(CrawlingService.name);
@@ -24,15 +24,13 @@ export class CrawlingService {
 
   // 뉴스 섹션 크롤링 (네이버 뉴스 기준)
   async crawlingNews(): Promise<any> {
-
     const crawlingResultData = [];
     // 브라우저 초기화
-    const browser = await this.pagingService.initBrowser();
-
+    const browser = await this.crawlerService.initBrowser();
     try {
       for (const link of this.links) {
         // 페이지 초기화
-        const page = await this.pagingService.initPage(browser);
+        const page = await this.crawlerService.initPage(browser);
         // 페이지 이동
         await page.goto(link, { waitUntil: 'networkidle2', timeout: 30000 });
         await this.randomDelay();
@@ -55,17 +53,17 @@ export class CrawlingService {
       }
       // 크롤링 결과 확인
       this.logger.log(`Number of successfully crawled data: ${crawlingResultData.length}`);
+      return crawlingResultData;
     } catch (error) {
       this.logger.error(`Error during crawling: ${error.message}`);
     } finally {
-      await this.pagingService.closeBrowser(browser);
-      return JSON.stringify(crawlingResultData);
+      await this.crawlerService.closeBrowser(browser);
     }
   }
   // 뉴스 기사 크롤링 (네이버 기사 기준)
   async crawlingNewsDetail(browser: puppeteer.Browser, news: any): Promise<any> {
     // 페이지 초기화
-    const page = await this.pagingService.initPage(browser);
+    const page = await this.crawlerService.initPage(browser);
     try {
       // 페이지 이동
       await page.goto(news.link, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -75,10 +73,10 @@ export class CrawlingService {
       // 페이지 크롤링
       const crawlingNews = await page.evaluate(() => {
         const source = document.querySelector('.media_end_head_top_logo_img')?.getAttribute('title') || null;
-        const category = Array.from(document.querySelectorAll('.media_end_categorize_item')).map(item => item?.textContent?.trim() || news.category || null).filter(item => item);
         const content = document.querySelector('#dic_area')?.textContent?.trim() || null;
-        const images = Array.from(document.querySelectorAll('.end_photo_org img')).map(img => img.getAttribute('data-src') || img.getAttribute('src')).filter(src => src);
         const publishedAt = document.querySelector('.media_end_head_info_datestamp_time')?.getAttribute('data-date-time') || null;
+        const category = Array.from(document.querySelectorAll('.media_end_categorize_item')).map(item => item?.textContent?.trim() || news.category || null).filter(item => item);
+        const images = Array.from(document.querySelectorAll('.end_photo_org img')).map(img => img.getAttribute('data-src') || img.getAttribute('src')).filter(src => src);
         return { source, category, publishedAt, images, content };
       });
       // 크롤링 결과 반환
@@ -91,7 +89,6 @@ export class CrawlingService {
     } catch (error) {
       this.logger.error(`Error crawling article: ${news.url}`, error.message);
     } finally {
-      // 페이지 닫기
       await page.close();
     }
   }

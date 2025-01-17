@@ -3,16 +3,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CrawledNews, CrawledNewsSchema } from './schema/crwaled-news.schema';
 import { CrawlingService } from './crawling.service';
 import { CrawlingController } from './crawling.controller';
-import { PagingService } from './paging.service';
+import { CrawlerService } from './crawler.service';
+
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: CrawledNews.name, schema: CrawledNewsSchema },
-    ]),
+    MongooseModule.forFeature([{ name: CrawledNews.name, schema: CrawledNewsSchema }]),
   ],
   providers: [
+    CrawlerService,
     CrawlingService,
-    PagingService,
   ],
   exports: [CrawlingService],
   controllers: [CrawlingController],

@@ -2,8 +2,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import * as puppeteer from 'puppeteer';
 
 @Injectable()
-export class PagingService {
-  private readonly logger = new Logger(PagingService.name);
+export class CrawlerService {
+  private readonly logger = new Logger(CrawlerService.name);
   // 크롤링 모듈 선언 및 초기화
   private browser: puppeteer.Browser;
   // 브라우저 초기화
@@ -37,15 +37,11 @@ export class PagingService {
       'Accept-Language': 'ko-KR,ko;q=0.9',
       'Referer': 'https://news.naver.com',
     });
-
     this.logger.debug(`Page initialize with User-Agent: ${randomAgent}`);
-
     return page;
   }
   // 브라우저 종료
   async closeBrowser(browser: puppeteer.Browser): Promise<void> {
-    if (browser) {
-      await browser.close();
-    }
+    if (browser) await browser.close();
   }
 }
