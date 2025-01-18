@@ -66,6 +66,7 @@ model Newsletter {
   categoryId Int
   userId     Int
   viewcount  Int      @default(0)
+  usedNews   String   @db.Text
   createdAt  DateTime @default(now())
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
