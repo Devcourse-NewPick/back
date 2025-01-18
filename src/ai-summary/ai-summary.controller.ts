@@ -1,4 +1,4 @@
-import { Controller, Body, Get } from '@nestjs/common';
+import { Controller, Body, Post } from '@nestjs/common';
 import { OpenAiService } from './openai.service';
 import { CrawlingService } from '../crawling/crawling.service';
 @Controller('ai-summary')
@@ -8,10 +8,10 @@ export class AiSummaryController {
     private readonly crawlingService: CrawlingService,
   ) {}
 
-  @Get('summarize')
-  async summarize(@Body() data: { dateTo: number }) {
-    const { dateTo } = data;
-    const news = await this.crawlingService.findByDateRange(dateTo);
+  @Post('summarize')
+  async summarize(@Body() data: { dateStart: string; dateEnd: string }) {
+    const { dateStart, dateEnd } = data;
+    const news = await this.crawlingService.findByDateRange(dateStart, dateEnd);
     const summary = await this.openAiService.summarizeText(news);
     return {
       newsIds: news.map((item) => item._id).toString(),
@@ -20,11 +20,13 @@ export class AiSummaryController {
     };
   }
 
-  @Get('get-news')
-  async getNews(@Body() data: { dateTo: number }) {
-    const { dateTo } = data;
-    const news = await this.crawlingService.findByDateRange(dateTo);
-    console.log(news.length);
-    return news;
+  @Post('get-news')
+  async getNews(@Body() data: { dateStart: string; dateEnd: string }) {
+    const { dateStart, dateEnd } = data;
+    const news = await this.crawlingService.findByDateRange(dateStart, dateEnd);
+    return {
+      count: news.length,
+      news,
+    };
   }
 }

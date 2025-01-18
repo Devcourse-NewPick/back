@@ -36,19 +36,17 @@ export class CrawlingService implements OnModuleDestroy {
       .exec();
     return allNews;
   }
-  async findByDateRange(dateTo: number): Promise<News[]> {
-    const today = dayjs().format('YYYY-MM-DD');
-    const dateToNum = Number(dateTo);
-    const startDate = dayjs().subtract(dateToNum, 'day').format('YYYY-MM-DD');
-    console.log(startDate, today);
+  async findByDateRange(dateStart: string, dateEnd: string): Promise<News[]> {
+    const startDate = dayjs(dateStart).format('YYYY-MM-DD');
+    const endDate = dayjs(dateEnd).format('YYYY-MM-DD');
 
-    this.logger.debug(`검색 기간: ${startDate} ~ ${today}`);
+    this.logger.debug(`검색 기간: ${startDate} ~ ${endDate}`);
 
     const news = await this.crawledNewsModel
       .find({
         createdAt: {
           $gte: startDate,
-          $lte: today,
+          $lte: endDate,
         },
       })
       .lean()
