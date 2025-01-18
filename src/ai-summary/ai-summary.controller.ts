@@ -14,9 +14,8 @@ export class AiSummaryController {
     const news = await this.crawlingService.findByDateRange(dateTo);
     const summary = await this.openAiService.summarizeText(news);
     return {
-      newsId: news.map((item) => item._id).toString(),
-      summary: summary,
-      error: '',
+      newsIds: news.map((item) => item._id).toString(),
+      summary: summary.summary,
       openaiResponse: summary.openai,
     };
   }
