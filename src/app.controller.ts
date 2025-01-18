@@ -7,6 +7,6 @@ export class AppController {
 
   @Get()
   async getHello(): Promise<string> {
-    return await this.openAiService.summarizeText('Sample text');
+    return 'Hello World';
   }
 }

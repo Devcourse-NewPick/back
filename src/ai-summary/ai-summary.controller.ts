@@ -1,17 +1,31 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Body, Get } from '@nestjs/common';
 import { OpenAiService } from './openai.service';
-
+import { CrawlingService } from '../crawling/crawling.service';
 @Controller('ai-summary')
 export class AiSummaryController {
-  constructor(private readonly openAiService: OpenAiService) {}
+  constructor(
+    private readonly openAiService: OpenAiService,
+    private readonly crawlingService: CrawlingService,
+  ) {}
 
-  @Post('summarize')
-  async summarize(@Body() data: { text: string }) {
-    return this.openAiService.summarizeText(data.text);
+  @Get('summarize')
+  async summarize(@Body() data: { dateTo: number }) {
+    const { dateTo } = data;
+    const news = await this.crawlingService.findByDateRange(dateTo);
+    const summary = await this.openAiService.summarizeText(news);
+    return {
+      newsId: news.map((item) => item._id).toString(),
+      summary: summary,
+      error: '',
+      openaiResponse: summary.openai,
+    };
   }
 
-  @Get('test')
-  async test() {
-    return 'test';
+  @Get('get-news')
+  async getNews(@Body() data: { dateTo: number }) {
+    const { dateTo } = data;
+    const news = await this.crawlingService.findByDateRange(dateTo);
+    console.log(news.length);
+    return news;
   }
 }

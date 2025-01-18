@@ -4,6 +4,8 @@ import * as puppeteer from 'puppeteer';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CrawledNews } from './schema/crwaled-news.schema';
+import dayjs from 'dayjs';
+import { News } from '../ai-summary/openai.service';
 
 @Injectable()
 export class CrawlingService implements OnModuleDestroy {
@@ -25,6 +27,33 @@ export class CrawlingService implements OnModuleDestroy {
     console.log('조회된 문서 수:', allNews.length);
 
     return allNews;
+  }
+
+  async findAllByDate(dateTo: number) {
+    const allNews = await this.crawledNewsModel
+      .find({ dateTo: { $lte: dateTo } })
+      .lean()
+      .exec();
+    return allNews;
+  }
+  async findByDateRange(dateTo: number): Promise<News[]> {
+    const today = dayjs().format('YYYY-MM-DD');
+    const dateToNum = Number(dateTo);
+    const startDate = dayjs().subtract(dateToNum, 'day').format('YYYY-MM-DD');
+    console.log(startDate, today);
+
+    this.logger.debug(`검색 기간: ${startDate} ~ ${today}`);
+
+    const news = await this.crawledNewsModel
+      .find({
+        createdAt: {
+          $gte: startDate,
+          $lte: today,
+        },
+      })
+      .lean()
+      .exec();
+    return news as unknown as News[];
   }
 
   async findOne(id: string): Promise<CrawledNews> {

@@ -132,12 +132,14 @@ model NewsletterArchive {
 // AiProcessLog 테이블
 model AiProcessLog {
   id          Int      @id @default(autoincrement())
-  newsId      Int
+  newsId      String   @db.Text
   processType String
   result      String   @db.Text
   duration    Float
   createdAt   DateTime @default(now())
   status      String
+  error       String?  @db.Text
+  token       Int
 
   @@map("ai_process_logs")
 }
