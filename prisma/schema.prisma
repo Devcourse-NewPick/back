@@ -34,7 +34,7 @@ model CrawledNews {
 model User {
   id                      Int       @id @default(autoincrement())
   email                   String    @unique
-  password                String
+  password                String?
   username                String?
   profileImg              String?
   interests               Json?

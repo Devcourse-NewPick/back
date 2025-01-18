@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-google-oauth20';
+import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -17,14 +17,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     accessToken: string,
     refreshToken: string,
     profile: any,
+    done: VerifyCallback,
   ): Promise<any> {
-    const { name, emails, photos } = profile;
+    const { emails, displayName, photos, id } = profile;
+
     const user = {
+      id, // Google 사용자 고유 ID
       email: emails[0].value,
-      name: name.givenName,
+      name: displayName,
       picture: photos[0].value,
       accessToken,
     };
-    return user; // 유저 정보를 반환
+
+    done(null, user);
   }
 }
