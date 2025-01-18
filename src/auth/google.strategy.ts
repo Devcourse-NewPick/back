@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { Injectable } from '@nestjs/common';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 
 @Injectable()
@@ -8,8 +8,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_REDIRECT_URI,
-      scope: ['email', 'profile'], // 이메일 및 프로필 정보 요청
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      scope: ['email', 'profile'],
     });
   }
 
@@ -19,14 +19,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ): Promise<any> {
-    const { emails, displayName, photos, id } = profile;
-
+    const { id, emails } = profile;
     const user = {
-      id, // Google 사용자 고유 ID
+      googleSub: id,
       email: emails[0].value,
-      name: displayName,
-      picture: photos[0].value,
-      accessToken,
     };
 
     done(null, user);

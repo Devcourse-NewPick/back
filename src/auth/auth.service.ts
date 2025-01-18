@@ -1,6 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { MysqlPrismaService } from 'prisma/mysql.service'; // Prisma 서비스 경로 확인 필요
+import { MysqlPrismaService } from 'prisma/mysql.service';
 
 @Injectable()
 export class AuthService {
@@ -10,36 +10,38 @@ export class AuthService {
   ) {}
 
   /**
-   * 사용자 검증
+   * Google Auth 사용자 검증 또는 생성
+   * @param googleSub Google Auth의 고유 사용자 ID
    * @param email 사용자 이메일
-   * @param password 사용자 비밀번호
    */
-  async validateUser(email: string, password: string): Promise<any> {
-    // DB에서 사용자 정보 조회
-    const user = await this.prisma.user.findUnique({
+  async validateOrCreateGoogleUser(
+    googleSub: string,
+    email: string,
+  ): Promise<any> {
+    let user = await this.prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      // 사용자 생성
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          username: email.split('@')[0], // 기본값으로 이메일 앞부분 사용
+        },
+      });
     }
 
-    // 비밀번호 비교 로직 추가 (예: bcrypt 사용)
-    const isPasswordValid = password === user.password; // bcrypt.compare(password, user.password)
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    // 검증된 사용자 정보 반환
-    return { id: user.id, email: user.email };
+    console.log(`Google User Authenticated: ${googleSub}`);
+    return user;
   }
 
   /**
    * JWT 토큰 생성
    * @param user 사용자 정보
    */
-  generateJwtToken(user: any): string {
-    const payload = { email: user.email, sub: user.id }; // sub: subject (사용자 ID)
+  generateJwtToken(user: { id: number; email: string }): string {
+    const payload = { email: user.email, sub: user.id };
     return this.jwtService.sign(payload);
   }
 }

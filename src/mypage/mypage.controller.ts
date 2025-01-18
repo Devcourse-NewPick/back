@@ -18,10 +18,9 @@ export class MyPageController {
    */
   @Get('profile')
   async getProfile(@Req() req) {
-    if (!req.user || !req.user.userId) {
-      throw new UnauthorizedException('User not authenticated');
-    }
-    return this.myPageService.getProfile(req.user.userId);
+    console.log('Decoded user:', req.user); // 디코딩된 사용자 정보 확인
+    const userId = this.validateAndParseUserId(req.user?.userId);
+    return this.myPageService.getProfile(userId);
   }
 
   /**
@@ -29,11 +28,9 @@ export class MyPageController {
    */
   @Get('bookmarks')
   async getBookmarks(@Req() req) {
-    if (!req.user || !req.user.userId) {
-      throw new UnauthorizedException('User not authenticated');
-    }
+    const userId = this.validateAndParseUserId(req.user?.userId);
     console.log(req.user); // userId를 제대로 가져오는지 확인
-    return this.myPageService.getBookmarks(req.user.userId);
+    return this.myPageService.getBookmarks(userId);
   }
 
   /**
@@ -41,10 +38,8 @@ export class MyPageController {
    */
   @Get('subscriptions/status')
   async getSubscriptionStatus(@Req() req) {
-    if (!req.user || !req.user.userId) {
-      throw new UnauthorizedException('User not authenticated');
-    }
-    return this.myPageService.getSubscriptionStatus(req.user.userId);
+    const userId = this.validateAndParseUserId(req.user?.userId);
+    return this.myPageService.getSubscriptionStatus(userId);
   }
 
   /**
@@ -52,9 +47,27 @@ export class MyPageController {
    */
   @Get('subscriptions/history')
   async getSubscriptionHistory(@Req() req) {
-    if (!req.user || !req.user.userId) {
+    const userId = this.validateAndParseUserId(req.user?.userId);
+    return this.myPageService.getSubscriptionHistory(userId);
+  }
+
+  /**
+   * userId를 검증하고 Int로 변환
+   */
+  private validateAndParseUserId(userId: string | number | undefined): number {
+    console.log('Raw userId:', userId); // 원본 userId 값 출력
+    if (!userId) {
       throw new UnauthorizedException('User not authenticated');
     }
-    return this.myPageService.getSubscriptionHistory(req.user.userId);
+
+    const parsedId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+
+    console.log('Parsed userId:', parsedId); // 변환된 userId 확인
+
+    if (isNaN(parsedId) || parsedId < -2147483648 || parsedId > 2147483647) {
+      throw new UnauthorizedException('Invalid or out-of-range user ID');
+    }
+
+    return parsedId;
   }
 }

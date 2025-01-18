@@ -1,8 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Req,
   UseGuards,
   UnauthorizedException,
@@ -29,29 +27,28 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req) {
-    // Google 로그인 성공 시 JWT 토큰 발급
-    const token = this.authService.generateJwtToken(req.user);
+    const { googleSub, email } = req.user;
+
+    // Google Auth 사용자 검증 또는 생성
+    const user = await this.authService.validateOrCreateGoogleUser(
+      googleSub,
+      email,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException('Google OAuth user not found');
+    }
+
+    // JWT 토큰 발급
+    const token = this.authService.generateJwtToken(user);
     return {
       message: 'Google OAuth login successful',
-      user: req.user,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
       access_token: token,
     };
-  }
-
-  /**
-   * 일반 로그인
-   */
-  @Post('login')
-  async login(@Body() loginDto: { email: string; password: string }) {
-    const user = await this.authService.validateUser(
-      loginDto.email,
-      loginDto.password,
-    );
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    const token = this.authService.generateJwtToken(user);
-    return { access_token: token };
   }
 
   /**
@@ -60,6 +57,9 @@ export class AuthController {
   @Get('check')
   @UseGuards(AuthGuard('jwt'))
   async checkAuth(@Req() req) {
-    return { message: 'Authenticated', user: req.user };
+    return {
+      message: 'Authenticated',
+      user: req.user,
+    };
   }
 }
