@@ -11,6 +11,8 @@ import { RedisDatabaseModule } from './database/redis/redis.module'; // Redis �
 import { PrismaModule } from '../prisma/prisma.module';
 import { OpenAiService } from './ai-summary/openai.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { MailModule } from './mail/mail.module';
+import { MailService } from './mail/mail.service';
 import {
   CrawledNews,
   CrawledNewsSchema,
@@ -38,8 +40,9 @@ import {
     FeedbackModule, // 피드백 모듈
     RedisDatabaseModule, // Redis 모듈
     PrismaModule,
+    MailModule,
   ],
   controllers: [AppController], // 컨트롤러 등록
-  providers: [AppService, OpenAiService], // 서비스 등록
+  providers: [AppService, OpenAiService, MailService], // 서비스 등록
 })
 export class AppModule {}
