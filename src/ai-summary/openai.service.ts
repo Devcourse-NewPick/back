@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { OpenAI } from 'openai';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
-
+import { FindCategoryService } from './findCategory.service';
+import { CreateNewsletterService } from './createNewsletter.service';
+import { CreateTitleService } from './createTitle.service';
 export interface News {
   _id?: string;
   title: string;
@@ -15,15 +17,21 @@ export interface News {
 
 @Injectable()
 export class OpenAiService {
-  private openai: OpenAI;
+  private readonly logger = new Logger(OpenAiService.name);
+  constructor(
+    private readonly prisma: MysqlPrismaService,
+    private readonly openai: OpenAI,
+    private readonly findCategoryService: FindCategoryService,
+    private readonly createNewsletterService: CreateNewsletterService,
+    private readonly createTitleService: CreateTitleService,
+  ) {}
 
-  constructor(private prisma: MysqlPrismaService) {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-
-  async summarizeText(news: News[]): Promise<{ summary: string; openai: any }> {
+  async summarizeText(news: News[]): Promise<{
+    summary: string;
+    openai: any;
+    categoryId: number;
+    newsletter: any;
+  }> {
     const startTime = Date.now();
 
     try {
@@ -61,12 +69,25 @@ export class OpenAiService {
         },
       });
 
-      return { summary, openai: response };
+      const categoryId = await this.findCategoryService.findCategory(summary);
+      const title = await this.createTitleService.createTitle(summary);
+
+      const newsletter = await this.createNewsletterService.createNewsletter(
+        title,
+        summary,
+        newsId,
+        categoryId,
+      );
+
+      this.logger.debug(`요약 완료: ${newsletter.id}`);
+
+      return { summary, openai: response, categoryId, newsletter };
     } catch (error) {
       const duration = (Date.now() - startTime) / 1000;
+      const newsId = news.map((item) => item._id).toString();
       await this.prisma.aiProcessLog.create({
         data: {
-          newsId: '',
+          newsId: newsId,
           processType: 'summarization',
           result: error.message,
           duration: duration,
@@ -76,6 +97,7 @@ export class OpenAiService {
         },
       });
 
+      this.logger.error(`요약 실패: ${error.message}`);
       throw new Error('Summarization failed.');
     }
   }

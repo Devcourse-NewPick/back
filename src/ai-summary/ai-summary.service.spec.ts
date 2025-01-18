@@ -20,7 +20,7 @@ describe('OpenAiService', () => {
   });
 
   it('should return a mocked summary', async () => {
-    const result = await service.summarizeText('Sample text', []);
+    const result = await service.summarizeText([]);
     expect(result).toBe('Mock summary content');
   });
 });
