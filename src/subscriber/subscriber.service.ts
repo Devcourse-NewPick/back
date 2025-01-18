@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service'; // PrismaService를 통한 DB 접근
+import { MysqlPrismaService } from 'prisma/mysql.service'; // MysqlPrismaService 사용
 
 @Injectable()
 export class SubscriberService {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
+  // 구독 시작
   async startSubscription(userId: number) {
     const userExists = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -22,6 +23,7 @@ export class SubscriberService {
     });
   }
 
+  // 구독 종료
   async endSubscription(userId: number) {
     const userExists = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -37,6 +39,7 @@ export class SubscriberService {
     });
   }
 
+  // 현재 구독 상태 조회
   async getSubscriptionStatus(userId: number) {
     const userExists = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -51,5 +54,21 @@ export class SubscriberService {
     });
 
     return subscription ? { active: true } : { active: false };
+  }
+
+  // 전체 구독 기록 조회
+  async getSubscriptionHistory(userId: number) {
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!userExists) {
+      throw new NotFoundException(`User with ID ${userId} does not exist.`);
+    }
+
+    return await this.prisma.subscriber.findMany({
+      where: { userId },
+      orderBy: { startedAt: 'desc' },
+    });
   }
 }

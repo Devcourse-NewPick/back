@@ -1,4 +1,11 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { SubscriberService } from './subscriber.service';
 
 @Controller('subscribers')
@@ -10,7 +17,7 @@ export class SubscriberController {
    * @param userId 사용자 ID
    */
   @Post('start')
-  async startSubscription(@Body('userId') userId: number) {
+  async startSubscription(@Body('userId', ParseIntPipe) userId: number) {
     return this.subscriberService.startSubscription(userId);
   }
 
@@ -19,7 +26,7 @@ export class SubscriberController {
    * @param userId 사용자 ID
    */
   @Post('end')
-  async endSubscription(@Body('userId') userId: number) {
+  async endSubscription(@Body('userId', ParseIntPipe) userId: number) {
     return this.subscriberService.endSubscription(userId);
   }
 
@@ -28,7 +35,16 @@ export class SubscriberController {
    * @param userId 사용자 ID
    */
   @Get('status')
-  async getSubscriptionStatus(@Query('userId') userId: number) {
+  async getSubscriptionStatus(@Query('userId', ParseIntPipe) userId: number) {
     return this.subscriberService.getSubscriptionStatus(userId);
+  }
+
+  /**
+   * 전체 구독 기록 조회
+   * @param userId 사용자 ID
+   */
+  @Get('history')
+  async getSubscriptionHistory(@Query('userId', ParseIntPipe) userId: number) {
+    return this.subscriberService.getSubscriptionHistory(userId);
   }
 }
