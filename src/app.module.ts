@@ -18,6 +18,7 @@ import {
   CrawledNewsSchema,
 } from './crawling/schema/crwaled-news.schema';
 import { SubscriberModule } from './subscriber/subscriber.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SubscriberModule } from './subscriber/subscriber.module';
     MyPageModule, // 마이페이지 모듈 추가
     AdminModule, // 관리자 페이지 모듈 추가
     SubscriberModule, // 추가된 모듈
+    UserModule, // 유저 모듈
   ],
   controllers: [AppController], // 컨트롤러 등록
   providers: [AppService, OpenAiService], // 서비스 등록
