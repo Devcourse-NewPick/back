@@ -7,44 +7,41 @@ datasource db {
   url      = "mysql://root:root@localhost:3308/newpick"
 }
 
-// User 테이블
 model User {
-  id                       Int      @id @default(autoincrement())
-  email                    String   @unique
-  password                 String?
-  username                 String?
-  profileImg               String?
-  interests                Json?
-  timezone                 String   @default("UTC")
-  frequency                String   @default("weekly") // 발송 주기
-  role                     String   @default("user")
-  notificationPreferences  Json?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
-
-  subscribers              Subscriber[]
-  oAuthTokens             OAuthToken[]
-  newsletters             Newsletter[]
+  id                      Int                 @id @default(autoincrement())
+  email                   String              @unique
+  password                String?
+  username                String?
+  profileImg              String?
+  interests               Json?
+  timezone                String              @default("UTC")
+  frequency               String              @default("weekly")
+  role                    String              @default("user")
+  notificationPreferences Json?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  bookmarks               Bookmark[]
   feedbacks               Feedback[]
-  retryQueues             RetryQueue[]
   newsletterArchives      NewsletterArchive[]
+  newsletters             Newsletter[]
+  oAuthTokens             OAuthToken[]
+  retryQueues             RetryQueue[]
+  subscribers             Subscriber[]
 
   @@map("users")
 }
 
-// Subscribers 테이블
 model Subscriber {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   userId    Int
-  startedAt DateTime @default(now())
+  startedAt DateTime  @default(now())
   endAt     DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@index([userId], map: "subscribers_userId_fkey")
   @@map("subscribers")
 }
 
-// OAuthToken 테이블
 model OAuthToken {
   id           Int      @id @default(autoincrement())
   userId       Int
@@ -52,85 +49,81 @@ model OAuthToken {
   refreshToken String   @db.Text
   expiresAt    DateTime
   createdAt    DateTime @default(now())
-
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "oauth_tokens_userId_fkey")
   @@map("oauth_tokens")
 }
 
-// Newsletter 테이블
 model Newsletter {
-  id         Int      @id @default(autoincrement())
+  id         Int                 @id @default(autoincrement())
   title      String
-  content    String   @db.Text
+  content    String              @db.Text
   categoryId Int
   userId     Int
-  viewcount  Int      @default(0)
-  createdAt  DateTime @default(now())
-
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category   NewsCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  viewcount  Int                 @default(0)
+  createdAt  DateTime            @default(now())
   feedbacks  Feedback[]
   archives   NewsletterArchive[]
+  category   NewsCategory        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([categoryId], map: "newsletters_categoryId_fkey")
+  @@index([userId], map: "newsletters_userId_fkey")
   @@map("newsletters")
 }
 
-// NewsCategory 테이블
 model NewsCategory {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  description String?   @db.Text
-
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?      @db.Text
   newsletters Newsletter[]
 
   @@map("news_categories")
 }
 
-// Feedback 테이블
 model Feedback {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  newsletterId  Int      // 뉴스레터와 연결
-  newsId        Int      // 개별 뉴스 또는 기사와 연결
-  likes         Boolean  @default(false) // 추가된 좋아요 필드
-  comments      String?  @db.Text
-  createdAt     DateTime @default(now())
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  newsletterId Int
+  comments     String?    @db.Text
+  createdAt    DateTime   @default(now())
+  likes        Boolean    @default(false)
+  newsId       Int
+  newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  newsletter    Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
-
+  @@index([newsletterId], map: "feedbacks_newsletterId_fkey")
+  @@index([userId], map: "feedbacks_userId_fkey")
   @@map("feedbacks")
 }
 
-// RetryQueue 테이블
 model RetryQueue {
   id        Int      @id @default(autoincrement())
   userId    Int
   email     String
   status    String   @default("대기 중")
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "retry_queues_userId_fkey")
   @@map("retry_queues")
 }
 
-// NewsletterArchive 테이블
 model NewsletterArchive {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   newsletterId Int
   userId       Int
   sentAt       DateTime
-  archiveDate  DateTime @default(now())
-
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  archiveDate  DateTime   @default(now())
   newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([newsletterId], map: "newsletter_archives_newsletterId_fkey")
+  @@index([userId], map: "newsletter_archives_userId_fkey")
   @@map("newsletter_archives")
 }
 
-// AiProcessLog 테이블
 model AiProcessLog {
   id          Int      @id @default(autoincrement())
   newsId      Int
@@ -141,4 +134,15 @@ model AiProcessLog {
   status      String
 
   @@map("ai_process_logs")
+}
+
+model Bookmark {
+  id     Int    @id @default(autoincrement())
+  title  String
+  url    String
+  userId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "bookmarks_userId_fkey")
+  @@map("bookmarks")
 }
