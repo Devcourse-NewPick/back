@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { CrawledNews } from './schema/crwaled-news.schema';
+import dayjs from 'dayjs';
+import { News } from '../ai-summary/openai.service';
 import PQueue from '@esm2cjs/p-queue';
 import { CrawlerService } from './crawler.service';
 import { CrawlingRepository } from './crawling.repository';
@@ -11,6 +16,61 @@ export class CrawlingService {
     private readonly crawlingRepository: CrawlingRepository,
   ) {}
 
+  async create(createCrawledNewsDto: any): Promise<CrawledNews> {
+    const createdNews = new this.crawledNewsModel(createCrawledNewsDto);
+    return createdNews.save();
+  }
+
+  async findAll() {
+    const count = await this.crawledNewsModel.countDocuments();
+    console.log('총 문서 수:', count);
+    const allNews = await this.crawledNewsModel.find({}).lean().exec();
+
+    console.log('조회된 문서 수:', allNews.length);
+
+    return allNews;
+  }
+
+  async findAllByDate(dateTo: number) {
+    const allNews = await this.crawledNewsModel
+      .find({ dateTo: { $lte: dateTo } })
+      .lean()
+      .exec();
+    return allNews;
+  }
+  async findByDateRange(dateStart: string, dateEnd: string): Promise<News[]> {
+    const startDate = dayjs(dateStart).format('YYYY-MM-DD');
+    const endDate = dayjs(dateEnd).format('YYYY-MM-DD');
+
+    this.logger.debug(`검색 기간: ${startDate} ~ ${endDate}`);
+
+    const news = await this.crawledNewsModel
+      .find({
+        createdAt: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      })
+      .lean()
+      .exec();
+    return news as unknown as News[];
+  }
+
+  async findOne(id: string): Promise<CrawledNews> {
+    return this.crawledNewsModel.findById(id).exec();
+  }
+
+  async update(id: string, updateCrawledNewsDto: any): Promise<CrawledNews> {
+    return this.crawledNewsModel
+      .findByIdAndUpdate(id, updateCrawledNewsDto, { new: true })
+      .exec();
+  }
+
+  async remove(id: string): Promise<CrawledNews> {
+    return this.crawledNewsModel.findByIdAndDelete(id).exec();
+  }
+
+  private browser: puppeteer.Browser;
   private readonly logger = new Logger(CrawlingService.name);
 
   private readonly links = [
