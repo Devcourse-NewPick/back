@@ -34,6 +34,9 @@ async function main() {
         content: faker.lorem.paragraph(),
         userId: user.id,
         categoryId: category.id,
+        createdAt: new Date(),
+        usedNews: '',
+        viewcount: 0,
       },
     });
 

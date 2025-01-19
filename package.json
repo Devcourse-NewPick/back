@@ -24,7 +24,7 @@
     "prisma:generate:mongodb": "prisma generate --schema=prisma/mongodb.schema.prisma",
     "prisma:push:mongodb": "prisma db push --schema=prisma/mongodb.schema.prisma",
     "prisma:generate:mysql": "prisma generate --schema=prisma/mysql.schema.prisma",
-    "prisma:push:mysql": "prisma migrate dev --schema=prisma/mysql.schema.prisma --name init",
+    "prisma:push:mysql": "prisma migrate dev --schema=prisma/mysql.schema.prisma",
     "prisma:generate": "prisma generate --schema=prisma/mongodb.schema.prisma && prisma generate --schema=prisma/mysql.schema.prisma"
   },
   "dependencies": {
@@ -55,6 +55,7 @@
     "cache-manager-redis-store": "^3.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "ioredis": "^5.4.2",
     "mongoose": "^8.9.5",

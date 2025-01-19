@@ -12,7 +12,7 @@ export class CrawlingService {
     private readonly crawlerService: CrawlerService,
     private readonly crawlingRepository: CrawlingRepository,
   ) {}
-
+  
   private readonly logger = new Logger(CrawlingService.name);
 
   private readonly links = [
@@ -94,7 +94,7 @@ export class CrawlingService {
         ...crawlingNews,
        };
     } catch (error) {
-      this.logger.error(`Error crawling article: ${news.url}`, error.message);
+      this.logger.error(`Error crawling news: ${news.url}`, error.message);
     } finally {
       await page.close();
     }
