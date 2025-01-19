@@ -1,12 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as puppeteer from 'puppeteer';
-import PQueue from '@esm2cjs/p-queue';
+import { UtilService } from './util.service';
 import { CrawlerService } from './crawler.service';
 import { CrawlingRepository } from './crawling.repository';
+
+import * as puppeteer from 'puppeteer';
 
 @Injectable()
 export class CrawlingService {
   constructor(
+    private readonly utilService: UtilService,
     private readonly crawlerService: CrawlerService,
     private readonly crawlingRepository: CrawlingRepository,
   ) {}
@@ -22,17 +24,13 @@ export class CrawlingService {
     'https://news.naver.com/section/105',
   ];
 
-  private readonly queue = new PQueue({ concurrency: 5 });
-
-  async crawling(): Promise<any> {
+  async crawling() {
     const crawledData = await this.crawlingNews();
     if (crawledData.length) {
-      const saveCrawledData = await this.crawlingRepository.createData(crawledData);
+      const saveCrawledData = await this.crawlingRepository.createCrawledNews(crawledData);
       this.logger.log(`Successfully processed ${saveCrawledData.length} items`);
     }
   }
-
-  // 뉴스 섹션 크롤링 (네이버 뉴스 기준)
   async crawlingNews(): Promise<any> {
     const crawlingResultData = [];
     // 브라우저 초기화
@@ -43,7 +41,7 @@ export class CrawlingService {
         const page = await this.crawlerService.initPage(browser);
         // 페이지 이동
         await page.goto(link, { waitUntil: 'networkidle2', timeout: 30000 });
-        await this.randomDelay();
+        await this.utilService.setDelay();
         // 페이지 크롤링
         const crawlingNews = await page.evaluate(() => {
           const newsList = document.querySelectorAll('.sa_item._SECTION_HEADLINE .sa_text_title');
@@ -55,9 +53,9 @@ export class CrawlingService {
         });
         await page.close();
         // 상세 페이지 크롤링
-        const crawlingNewsDetail = await Promise.all(crawlingNews.map(news => {
-          return this.queue.add(async() => this.crawlingNewsDetail(browser, news));
-        }));
+        const crawlingNewsDetail = await this.utilService.setQueue(
+          crawlingNews.map((news) => async () => this.crawlingNewsDetail(browser, news))
+        );
         // 크롤링 최종 결과 배열에 저장
         crawlingResultData.push(...crawlingNewsDetail.filter(news => news !== null));
       }
@@ -70,7 +68,6 @@ export class CrawlingService {
       await this.crawlerService.closeBrowser(browser);
     }
   }
-  // 뉴스 기사 크롤링 (네이버 기사 기준)
   async crawlingNewsDetail(browser: puppeteer.Browser, news: any): Promise<any> {
     // 페이지 초기화
     const page = await this.crawlerService.initPage(browser);
@@ -79,7 +76,7 @@ export class CrawlingService {
       await page.goto(news.link, { waitUntil: 'networkidle2', timeout: 30000 });
       // 다운 스크롤
       await page.evaluate(() => { window.scrollTo(0, document.body.scrollHeight) });
-      await this.randomDelay();
+      await this.utilService.setDelay();
       // 페이지 크롤링
       const crawlingNews = await page.evaluate(() => {
         const source = document.querySelector('.media_end_head_top_logo_img')?.getAttribute('title') || null;
@@ -101,11 +98,5 @@ export class CrawlingService {
     } finally {
       await page.close();
     }
-  }
-
-  // 랜덤 딜레이 (1~3초)
-  async randomDelay() {
-    const randomTime = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
-    return new Promise(resolve => setTimeout(resolve, randomTime));
   }
 }
