@@ -4,6 +4,9 @@ import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { FindCategoryService } from './findCategory.service';
 import { CreateNewsletterService } from './createNewsletter.service';
 import { CreateTitleService } from './createTitle.service';
+import { CrawledNews } from 'src/crawling/schema/crawling.schema';
+
+// crawling.schema를 사용하면 될 것 같습니다.
 export interface News {
   _id?: string;
   title: string;
@@ -26,7 +29,7 @@ export class OpenAiService {
     private readonly createTitleService: CreateTitleService,
   ) {}
 
-  async summarizeText(news: News[]): Promise<{
+  async summarizeText(news: CrawledNews[]): Promise<{
     summary: string;
     openai: any;
     categoryId: number;
