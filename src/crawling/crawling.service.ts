@@ -5,9 +5,6 @@ import { Model } from 'mongoose';
 import { CrawledNews } from './schema/crwaled-news.schema';
 import dayjs from 'dayjs';
 import { News } from '../ai-summary/openai.service';
-import PQueue from '@esm2cjs/p-queue';
-import { CrawlerService } from './crawler.service';
-import { CrawlingRepository } from './crawling.repository';
 
 @Injectable()
 export class CrawlingService {

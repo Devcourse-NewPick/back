@@ -64,11 +64,12 @@ model Newsletter {
   title      String
   content    String   @db.Text
   categoryId Int
-  userId     Int
+  userId     Int?
   viewcount  Int      @default(0)
+  usedNews   String   @db.Text
   createdAt  DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category   NewsCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   feedbacks  Feedback[]
   archives   NewsletterArchive[]
@@ -132,12 +133,14 @@ model NewsletterArchive {
 // AiProcessLog 테이블
 model AiProcessLog {
   id          Int      @id @default(autoincrement())
-  newsId      Int
+  newsId      String   @db.Text
   processType String
   result      String   @db.Text
   duration    Float
   createdAt   DateTime @default(now())
   status      String
+  error       String?  @db.Text
+  token       Int
 
   @@map("ai_process_logs")
 }

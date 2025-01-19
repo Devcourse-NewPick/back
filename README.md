@@ -258,7 +258,7 @@ model User {
 npx prisma db push --schema=prisma/mongodb.schema.prisma
 
 # MySQL의 경우
-npx prisma migrate dev --name add_phone_field --schema=prisma/mysql.schema.prisma
+npx prisma migrate dev --name add_field --schema=prisma/mysql.schema.prisma
 ```
 
 ### Prisma Studio로 데이터 관리하기
