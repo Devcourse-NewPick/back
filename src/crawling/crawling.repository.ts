@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { CrawledNews } from "./schema/crawling.schema";
+import * as dayjs from "dayjs";
 
 @Injectable()
 export class CrawlingRepository {
@@ -10,23 +11,43 @@ export class CrawlingRepository {
   ) {}
 
   private readonly logger = new Logger(CrawlingRepository.name);
-  // 크롤링 데이터 저장
-  async createData(dataArray: CrawledNews[]): Promise<CrawledNews[]> {
-    const result: CrawledNews[] = [];
+
+  async createCrawledNews(dataArray: CrawledNews[]): Promise<CrawledNews[]> {
+    const news: CrawledNews[] = [];
     try {
-      this.logger.log(`Create ${dataArray.length} item to the database use by mongoose`);
       for (const data of dataArray) {
         await this.crawledNews.findOneAndUpdate(
           { link: data.link },
           { $setOnInsert: data },
           { upsert: true, new: false }
         );
-        result.push(data);
+        news.push(data);
       }
-      return result;
+      return news;
     } catch (error) {
       this.logger.error(`Failed to create data: ${error.message}`);
       throw error;
     }
+  }
+
+  async getCrawledNews(dateStart: string, dateEnd: string): Promise<CrawledNews[]> {
+    const startDate = dayjs(dateStart).format('YYYY-MM-DD');
+    const endDate = dayjs(dateEnd).format('YYYY-MM-DD');
+    try {
+      const news = await this.crawledNews.find({
+        createdAt: {
+          $gte: startDate,
+          $lte: endDate
+        },
+      }).lean().exec();
+      return news as unknown as CrawledNews[];
+    } catch (error) {
+      this.logger.error(`Failed to fetch data: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async deleteCrawledNews(dateStart: string, dateEnd: string): Promise<CrawledNews[]> {
+    return
   }
 }
