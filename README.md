@@ -159,7 +159,6 @@ npm run start:dev
 ---
 
 ### **📌 데이터베이스 설정 방법**
-
 #### MySQL
 - **Host**: localhost
 - **Port**: 3308
@@ -167,6 +166,7 @@ npm run start:dev
 - **Username**: root
 - **Password**: root
 - **Connection URL**: `mysql://root:root@localhost:3308/newpick`
+- **GUI**: MySQL Workbench
 ```bash
 # 스키마 생성
 npm run prisma:generate:mysql
@@ -178,9 +178,10 @@ npm run prisma:push:mysql
 npm run test:mysql
 ```
 > [!WARNING]
-> **prisma/generate, migrations 파일은 commit 하지 마세요‼️**
-
+> **prisma/generate, migrations 파일은 commit 하지 마세요.**
 #### MongoDB
+- **Connection URL**: `mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet`
+- **GUI**: MongoDB Compass
 ```bash
 # DB와 연결 확인 테스트
 npm run test:mongodb
@@ -188,31 +189,9 @@ npm run test:mongodb
 
 ---
 
-### **📌 GUI 도구 연결**
-
-#### 1. MySQL Workbench
-1. MySQL Workbench 설치
-2. 새 연결 생성:
-   - Hostname: localhost
-   - Port: 3308
-   - Username: root
-   - Password: root
-   - Database: newpick
-   
-#### 2. MongoDB Compass
-1. MongoDB Compass 설치
-2. 새 연결 생성
-```
-mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet
-```
-
----
-
 ### **📌 Prisma 사용 방법**
-
 > [!NOTE]
 > **Prisma는 MySQL만 사용합니다. MongoDB는 Mongoose 라이브러리로 관리합니다.**
-
 #### 1. 스키마 변경하기
 - Prisma 스키마 파일 수정
 ```prisma
@@ -229,16 +208,16 @@ model User {
 ```bash
 npx prisma migrate dev --name add_field --schema=prisma/mysql.schema.prisma
 ```
-### 2. Prisma Studio 접속 및 데이터 관리
+#### 2. Prisma Studio 접속 및 데이터 관리
 ```bash
 npx prisma studio --schema=prisma/mysql.schema.prisma
 ```
-- 접속 방법:
+- **접속 방법**:
    - 위 명령어 실행
    - 브라우저에서 `http://localhost:5555` 접속
    - 원하는 모델 선택하여 데이터 관리
 
-- Prisma Studio 기능:
+- **Prisma Studio 기능**:
    - 웹 브라우저에서 데이터 조회/추가/수정/삭제
    - 테이블 간 관계 확인
    - 필터링 및 정렬
