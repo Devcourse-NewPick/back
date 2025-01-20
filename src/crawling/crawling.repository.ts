@@ -12,6 +12,10 @@ export class CrawlingRepository {
 
   private readonly logger = new Logger(CrawlingRepository.name);
 
+  async testCrawledNews(): Promise<CrawledNews> {
+    return await this.crawledNews.findOne().sort({ createdAt: -1 });
+  }
+
   async createCrawledNews(dataArray: CrawledNews[]): Promise<CrawledNews[]> {
     const news: CrawledNews[] = [];
     try {
