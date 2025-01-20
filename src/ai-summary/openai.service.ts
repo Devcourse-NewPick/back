@@ -6,17 +6,16 @@ import { CreateNewsletterService } from './createNewsletter.service';
 import { CreateTitleService } from './createTitle.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 
-// crawling.schema를 사용하면 될 것 같습니다.
-export interface News {
-  _id?: string;
-  title: string;
-  content: string;
-  source: string;
-  countryCode: string;
-  publishedAt: Date;
-  categoryName: string[];
-  img: string;
-}
+// export interface News {
+//   _id?: string;
+//   title: string;
+//   content: string;
+//   source: string;
+//   countryCode: string;
+//   publishedAt: Date;
+//   categoryName: string[];
+//   img: string;
+// }
 
 @Injectable()
 export class OpenAiService {
