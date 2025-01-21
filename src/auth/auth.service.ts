@@ -32,6 +32,7 @@ export class AuthService {
         data: {
           email,
           username,
+          password: googleSub, // Google Sub를 비밀번호 대체값으로 사용
           profileImg,
         },
         select: { id: true, email: true, username: true, profileImg: true },

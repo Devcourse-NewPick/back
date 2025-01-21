@@ -13,7 +13,8 @@ import { AdminModule } from './admin/admin.module'; // 관리자 페이지 모�
 import { PrismaModule } from '../prisma/prisma.module'; // Prisma 모듈
 import { OpenAiService } from './ai-summary/openai.service'; // OpenAI 서비스
 import { MongooseModule } from '@nestjs/mongoose';
-import { CrawledNews, CrawledNewsSchema } from './crawling/schema/crwaled-news.schema'; // 크롤링 스키마
+import { CrawledNews } from './crawling/schema/crawling.schema';
+import { CrawledNewsSchema } from './crawling/schema/crawling.schema';
 import { SubscriberModule } from './subscriber/subscriber.module'; // 구독자 모듈
 import { UserModule } from './user/user.module'; // 유저 모듈
 import { MailModule } from './mail/mail.module'; // 메일 모듈
