@@ -1,60 +1,117 @@
-# 🚀 back
+# 📰 뉴픽 백엔드
 
-## **프로젝트 개요**
+### **📌 프로젝트 개요**
 
-뉴픽(NewPick)은 사용자가 관심 분야를 설정하면 최신 뉴스를 AI 맞춤형으로 받아볼 수 있는 직관적이고 사용자 친화적인 뉴스레터 서비스입니다. 백엔드 시스템은 Nest.js 기반으로 구축되어 안정성과 확장성을 제공합니다. AI 기반 뉴스 요약과 효율적인 크롤링 기능을 통해 대량의 데이터를 빠르게 처리하고 이메일 뉴스레터 서비스까지 제공합니다. PostgreSQL, MongoDB, Redis를 사용해 데이터 저장 및 캐싱을 관리하며, 대용량 트래픽에도 견딜 수 있는 구조로 설계되었습니다.
+뉴픽(NewPick) 서비스는 사용자가 관심 분야를 설정하면 최신 뉴스를 AI 맞춤형으로 받아볼 수 있는 직관적이고 사용자 친화적인 뉴스레터 서비스입니다. 
+
+AI 기반 뉴스 요약과 효율적인 크롤링 기능을 통해 대량의 데이터를 빠르게 처리하고 이메일 뉴스레터 서비스까지 제공합니다. 
+
+백엔드 시스템은 NestJS 기반으로 구축하여 안정성과 확장성을 확보하였으며, MySQL, MongoDB, Redis를 사용해 데이터 저장 및 캐싱을 관리하는 구조로 설계되었습니다.
 
 ---
 
-## **주요 기능**
+### **📌 주요 기능**
 
-### **1. 사용자 관리 API**
+#### **1. 사용자 관리**
 
 - **회원가입 및 로그인**: 이메일 및 소셜 로그인(OAuth 2.0) 지원.
 - **프로필 관리**: 관심 분야 설정 및 뉴스레터 수신 주기 설정.
 
-### **2. 뉴스 크롤링 API**
+#### **2. 뉴스 크롤링**
 
-- **정적 페이지 크롤링**: `cheerio`로 HTML을 파싱하여 뉴스 데이터를 추출.
-- **동적 페이지 크롤링**: `puppeteer`로 JavaScript 렌더링이 필요한 페이지 수집.
+- **페이지 크롤링**: 크롤러로 브라우저 페이지에서 필요한 정보 수집.
 
-### **3. AI 요약 및 뉴스 추천 API**
+#### **3. AI 요약 및 뉴스 추천**
 
 - **OpenAI API 연동**: 뉴스 본문 요약 및 주요 키워드 추출.
 - **추천 알고리즘**: 사용자의 관심사에 기반하여 유사 뉴스 추천.
 
-### **4. 뉴스레터 생성 및 발송 API**
+#### **4. 뉴스레터 생성 및 발송**
 
 - **뉴스레터 자동 생성**: 설정된 주기(일간, 주간, 월간)대로 생성.
 - **이메일 발송**: `nodemailer`를 통해 뉴스레터 발송.
 - **발송 실패 대응**: `BullMQ`와 `Redis`를 사용하여 재시도 처리.
 
-### **5. 피드백 수집 및 분석 API**
+#### **5. 피드백 수집 및 분석**
 
 - **별점 및 의견 제출**: 뉴스레터에 대한 사용자 평가 수집.
 - **피드백 데이터 분석**: 추천 모델 개선을 위한 분석.
 
 ---
 
-## **기술 스택**
+### **📌 주요 모듈 설명**
 
-### **1. 백엔드 프레임워크**
+#### **1. 인증 및 사용자 관리 모듈 (`auth/`)**
 
-- **Nest.js**: 모듈 기반의 확장성과 유지보수성이 뛰어난 Node.js 프레임워크.
+- **기능**: JWT 토큰 기반 인증 및 소셜 로그인.
+- **라이브러리**: `@nestjs/jwt`, `passport-jwt`, `bcrypt`.
+
+#### **2. 뉴스 크롤링 모듈 (`crawling/`)**
+
+- **기능**: 뉴스 웹사이트에서 최신 뉴스를 수집.
+- **라이브러리**: `puppeteer`, `p-queue`, `mongoose`.
+
+#### **3. AI 요약 및 추천 모듈 (`ai-summary/`)**
+
+- **기능**: OpenAI API를 통해 뉴스 본문을 요약 및 추천.
+- **예정 기능**: 뉴스 본문을 자체 학습 모델로 전환하여 비용 최적화.
+
+#### **4. 뉴스레터 생성 및 발송 모듈 (`newsletter/`)**
+
+- **기능**: 뉴스레터 생성 및 이메일 발송.
+- **라이브러리**: `@nestjs-modules/mailer`, `nodemailer`.
+- **에러 처리**: `BullMQ`를 사용해 발송 실패 시 재시도 로직.
+
+#### **5. 피드백 수집 모듈 (`feedback/`)**
+
+- **기능**: 뉴스레터에 대한 사용자 피드백 수집.
+- **활용**: 피드백 데이터를 분석해 추천 모델 최적화.
+
+---
+
+### **📌 API 기능 및 설명**
+
+#### **사용자 관리 API**
+
+- **POST /auth/signup**: 회원가입 요청.
+- **POST /auth/login**: 로그인 요청.
+- **GET /user/profile**: 사용자 프로필 조회 및 수정.
+
+#### **AI 뉴스 요약 및 추천 API**
+
+- **POST /news/summary**: 입력된 뉴스 본문을 AI로 요약.
+- **GET /news/recommend**: 사용자 관심사를 기반으로 뉴스 추천.
+
+#### **뉴스레터 발송 API**
+
+- **POST /newsletter/send**: 뉴스레터 발송 요청.
+- **GET /newsletter/preview**: 뉴스레터 미리보기.
+
+#### **피드백 수집 API**
+
+- **POST /feedback**: 뉴스레터 피드백 제출.
+
+---
+
+### **📌 기술 스택**
+
+#### **1. 백엔드 프레임워크**
+
+- **NestJS**: 모듈 기반의 확장성과 유지보수성이 뛰어난 Node.js 프레임워크.
 - **TypeScript**: 타입 안정성을 통해 코드 가독성 및 유지보수성 향상.
 
-### **2. 데이터베이스 및 캐싱**
+#### **2. 데이터베이스 및 캐싱**
 
-- **PostgreSQL**: 관계형 데이터베이스로 사용자 및 뉴스레터 데이터 저장.
-- **MongoDB**: 비정형 데이터(크롤링된 뉴스 데이터) 저장.
+- **MySQL**: 관계형 데이터베이스로 사용자 및 뉴스레터 데이터 저장.
+- **MongoDB**: 비정형 데이터(크롤링 데이터) 저장.
 - **Redis**: 작업 큐 및 데이터 캐싱을 위한 인메모리 데이터베이스.
 
-### **3. AI 서비스**
+#### **3. AI 서비스**
 
 - **OpenAI API**: 뉴스 본문을 요약하고 주요 키워드 추출.
 - **향후 계획**: 비용 최적화를 위해 Hugging Face 모델 도입 검토.
 
-### **4. DevOps 및 배포**
+#### **4. DevOps 및 배포**
 
 - **Docker**: 컨테이너를 사용하여 환경에 독립적인 서비스 실행.
 - **AWS**: EC2(서버), RDS(DB), S3(정적 파일 저장) 사용.
@@ -63,144 +120,45 @@
 
 ---
 
-## **아키텍처 개요**
+### **📌 아키텍처 개요**
 
 ```
 backend/
+├── prisma/
 ├── src/
-│   ├── api/                 # API 라우팅 및 컨트롤러
-│   ├── auth/                # 사용자 인증 및 관리 모듈
-│   ├── newsletter/          # 뉴스레터 생성 및 발송 모듈
-│   ├── crawling/            # 뉴스 크롤링 모듈
-│   ├── feedback/            # 피드백 수집 및 분석 모듈
-│   ├── ai-summary/          # AI 요약 및 추천 모듈
-│   ├── database/            # 데이터베이스 설정 및 Prisma 스키마
-│   └── app.module.ts        # 메인 모듈 설정
-└── package.json             # 프로젝트 설정 및 의존성 목록
+│   ├── ai-summar/           # AI 요약 및 추천
+│   ├── auth/                # 사용자 인증 및 관리
+│   ├── crawling/            # 뉴스 크롤링
+│   ├── database/            # 데이터베이스 설정
+│   ├── feedback/            # 피드백 수집 및 분석
+│   ├── mail/                # 메일 발송 설정
+│   ├── newsletter/          # 뉴스레터 생성
+│   └── app.module.ts        
+└── package.json             # 프로젝트 설정 및 의존성 패키지
 ```
 
 ---
-
-## **주요 모듈 설명**
-
-### **1. 인증 및 사용자 관리 모듈 (`auth/`)**
-
-- **기능**: JWT 토큰 기반 인증 및 소셜 로그인.
-- **라이브러리**: `@nestjs/jwt`, `passport-jwt`, `bcrypt`.
-
-### **2. 뉴스 크롤링 모듈 (`crawling/`)**
-
-- **기능**: 뉴스 웹사이트에서 최신 뉴스를 수집.
-- **라이브러리**: `cheerio`(정적 페이지), `puppeteer`(동적 페이지).
-
-### **3. AI 요약 및 추천 모듈 (`ai-summary/`)**
-
-- **기능**: OpenAI API를 통해 뉴스 본문을 요약 및 추천.
-- **예정 기능**: 뉴스 본문을 자체 학습 모델로 전환하여 비용 최적화.
-
-### **4. 뉴스레터 생성 및 발송 모듈 (`newsletter/`)**
-
-- **기능**: 뉴스레터 생성 및 이메일 발송.
-- **라이브러리**: `@nestjs-modules/mailer`, `nodemailer`.
-- **에러 처리**: `BullMQ`를 사용해 발송 실패 시 재시도 로직.
-
-### **5. 피드백 수집 모듈 (`feedback/`)**
-
-- **기능**: 뉴스레터에 대한 사용자 피드백 수집.
-- **활용**: 피드백 데이터를 분석해 추천 모델 최적화.
-
----
-
-## **API 주요 기능 및 설명**
-
-### **사용자 관리 API**
-
-- **POST /auth/signup**: 회원가입 요청.
-- **POST /auth/login**: 로그인 요청.
-- **GET /user/profile**: 사용자 프로필 조회 및 수정.
-
-### **뉴스 크롤링 API**
-
-- **GET /news/crawl**: 주요 뉴스 사이트에서 최신 뉴스 데이터 수집.
-
-### **AI 뉴스 요약 및 추천 API**
-
-- **POST /news/summary**: 입력된 뉴스 본문을 AI로 요약.
-- **GET /news/recommend**: 사용자 관심사를 기반으로 뉴스 추천.
-
-### **뉴스레터 발송 API**
-
-- **POST /newsletter/send**: 뉴스레터 발송 요청.
-- **GET /newsletter/preview**: 뉴스레터 미리보기.
-
-### **피드백 수집 API**
-
-- **POST /feedback**: 뉴스레터 피드백 제출.
-
----
-
-## **에러 및 대응 방안**
-
-### **1. 뉴스 크롤링 실패**
-
-- **원인**: 웹사이트 구조 변경.
-- **대응 방안**: 크롤링 실패 시 로그를 기록하고, 개발팀에 자동 알림 전송.
-
-### **2. 이메일 발송 실패**
-
-- **원인**: SMTP 서버 연결 문제.
-- **대응 방안**: `BullMQ` 큐를 통해 일정 횟수 재시도.
-
-### **3. AI API 응답 실패**
-
-- **원인**: OpenAI API의 응답 지연 또는 실패.
-- **대응 방안**: 기본 뉴스 요약 텍스트를 제공하여 서비스 중단 방지.
-
----
-
-## **프로젝트 실행 방법**
-
-### **1. 설치 및 실행**
+### **📌 프로젝트 실행 방법**
 
 ```
-# 프로젝트 클론
+# 1. 프로젝트 클론
+git clone 
 
-# 의존성 설치
+# 2. 의존성 설치
 npm install
 
-# 환경 변수 설정
+# 3. 도커 설정
+docker compose up -d
 
-# 개발 서버 실행
+# 4. 환경 변수 설정
+
+# 5. 개발 서버 실행
 npm run start:dev
 ```
 
-### **2. 주요 환경 변수 설정**
-
-```
-추후 업데이트 예정 
-```
-
 ---
 
-## **추가 기능 계획**
-
-1. **다국어 뉴스 요약 지원**: 영어, 일본어 등 다양한 언어로 뉴스 제공.
-2. **음성 뉴스레터 기능**: 텍스트 뉴스레터를 오디오 파일로 변환하여 제공.
-3. **구독자 통계 기능**: 뉴스레터 열람 및 클릭 데이터를 분석해 맞춤형 보고서 생성.
-
-## 데이터베이스 설정 가이드
-
-### 2. 데이터베이스 접속 정보
-
-#### MongoDB
-- **Primary**: localhost:27017
-- **Secondary 1**: localhost:27018
-- **Secondary 2**: localhost:27019
-- **Database**: newpick
-- **Username**: root
-- **Password**: root
-- **Connection URL**: `mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet`
-
+### **📌 데이터베이스 설정 방법**
 #### MySQL
 - **Host**: localhost
 - **Port**: 3308
@@ -208,57 +166,36 @@ npm run start:dev
 - **Username**: root
 - **Password**: root
 - **Connection URL**: `mysql://root:root@localhost:3308/newpick`
-
-### 3. Prisma 스키마 적용
-
+- **GUI**: MySQL Workbench
 ```bash
-# MongoDB 스키마 적용
-npm run prisma:generate:mongodb
-npm run prisma:push:mongodb
-
-# MySQL 스키마 적용
+# 스키마 생성
 npm run prisma:generate:mysql
+
+# DB와 연동
 npm run prisma:push:mysql
+
+# DB와 연결 확인 테스트
+npm run test:mysql
+```
+> [!WARNING]
+> **prisma/generate, migrations 파일은 commit 하지 마세요.**
+#### MongoDB
+- **Connection URL**: `mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet`
+- **GUI**: MongoDB Compass
+```bash
+# DB와 연결 확인 테스트
+npm run test:mongodb
 ```
 
-### DB 세팅 테스트
-`npm run test:mongodb`
-`npm run test:mysql`
+---
 
-
-### 4. GUI 도구 연결
-
-#### MongoDB Compass
-1. MongoDB Compass 설치
-2. 새 연결 생성
-3. 연결 문자열 입력:
-```
-mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet
-```
-
-#### MySQL Workbench
-1. MySQL Workbench 설치
-2. 새 연결 생성:
-   - Hostname: localhost
-   - Port: 3308
-   - Username: root
-   - Password: root
-   - Database: newpick
-
-### 주의사항
-- MongoDB 키 파일은 절대로 Git에 커밋하지 마세요
-- prisma/generate, migrations 파일은 commit 하지 마세요
-- 
-
-## 스키마 & 데이터 관리 가이드
-
-### 스키마 변경하기
-
-1. Prisma 스키마 파일 수정
+### **📌 Prisma 사용 방법**
+> [!NOTE]
+> **Prisma는 MySQL만 사용합니다. MongoDB는 Mongoose 라이브러리로 관리합니다.**
+#### 1. 스키마 변경하기
+- Prisma 스키마 파일 수정
 ```prisma
-// MongoDB: prisma/mongodb.schema.prisma
 // MySQL: prisma/mysql.schema.prisma
-
 model User {
   id        String   @id @default(auto()) @map("_id") @mongodb.ObjectId
   email     String   @unique
@@ -267,38 +204,46 @@ model User {
   phone     String?  
 }
 ```
-
-2. 변경사항 적용
+- 변경사항 적용
 ```bash
-# MongoDB의 경우
-npx prisma db push --schema=prisma/mongodb.schema.prisma
-
-# MySQL의 경우
-npx prisma migrate dev --name add_phone_field --schema=prisma/mysql.schema.prisma
+npx prisma migrate dev --name add_field --schema=prisma/mysql.schema.prisma
 ```
-
-### Prisma Studio로 데이터 관리하기
-
+#### 2. Prisma Studio 접속 및 데이터 관리
 ```bash
-# MongoDB 데이터 관리
-npx prisma studio --schema=prisma/mongodb.schema.prisma
-
-# MySQL 데이터 관리
 npx prisma studio --schema=prisma/mysql.schema.prisma
 ```
+- **접속 방법**:
+   - 위 명령어 실행
+   - 브라우저에서 `http://localhost:5555` 접속
+   - 원하는 모델 선택하여 데이터 관리
 
-Prisma Studio 기능:
-- 웹 브라우저에서 데이터 조회/추가/수정/삭제
-- 테이블 간 관계 확인
-- 필터링 및 정렬
-- JSON 데이터 직접 편집
+- **Prisma Studio 기능**:
+   - 웹 브라우저에서 데이터 조회/추가/수정/삭제
+   - 테이블 간 관계 확인
+   - 필터링 및 정렬
+   - JSON 데이터 직접 편집
+---
 
-접속 방법:
-1. 위 명령어 실행
-2. 브라우저에서 `http://localhost:5555` 접속
-3. 원하는 모델 선택하여 데이터 관리
 
-# Npm list 버젼 맞추기. **✨필수✨**
+### **에러 및 대응 방안**
+
+#### **1. 이메일 발송 실패**
+
+- **원인**: SMTP 서버 연결 문제.
+- **대응 방안**: `BullMQ` 큐를 통해 일정 횟수 재시도.
+
+#### **2. AI API 응답 실패**
+
+- **원인**: OpenAI API의 응답 지연 또는 실패.
+- **대응 방안**: 기본 뉴스 요약 텍스트를 제공하여 서비스 중단 방지.
+
+### **추가 기능 계획**
+
+1. **다국어 뉴스 요약 지원**: 영어, 일본어 등 다양한 언어로 뉴스 제공.
+2. **음성 뉴스레터 기능**: 텍스트 뉴스레터를 오디오 파일로 변환하여 제공.
+3. **구독자 통계 기능**: 뉴스레터 열람 및 클릭 데이터를 분석해 맞춤형 보고서 생성.
+
+### Npm list 버전 맞추기 **✨필수✨**
 ```
 ├── @elastic/elasticsearch@8.17.0
 ├── @nestjs-modules/ioredis@2.0.2
@@ -335,7 +280,6 @@ Prisma Studio 기능:
 ├── cache-manager-ioredis@2.1.0
 ├── cache-manager-redis-store@3.0.1
 ├── cache-manager@5.7.6
-├── cheerio@1.0.0
 ├── class-transformer@0.5.1
 ├── class-validator@0.14.1
 ├── dotenv@16.4.7

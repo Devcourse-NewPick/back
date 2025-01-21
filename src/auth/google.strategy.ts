@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
+=======
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy } from 'passport-google-oauth20';
+>>>>>>> main
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -9,7 +15,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_REDIRECT_URI,
+<<<<<<< HEAD
       scope: ['email', 'profile'],
+=======
+      scope: ['email', 'profile'], // 이메일 및 프로필 정보 요청
+>>>>>>> main
     });
   }
 
@@ -17,6 +27,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     accessToken: string,
     refreshToken: string,
     profile: any,
+<<<<<<< HEAD
     done: VerifyCallback,
   ): Promise<any> {
     const { id, emails, displayName, photos } = profile;
@@ -29,5 +40,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     };
 
     done(null, user);
+=======
+  ): Promise<any> {
+    const { name, emails, photos } = profile;
+    const user = {
+      email: emails[0].value,
+      name: name.givenName,
+      picture: photos[0].value,
+      accessToken,
+    };
+    return user; // 유저 정보를 반환
+>>>>>>> main
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+<<<<<<< HEAD
 import { MysqlPrismaService } from 'prisma/mysql.service';
 
 @Injectable()
@@ -64,6 +65,23 @@ export class AuthService {
       username: user.username,
       profileImg: user.profileImg,
     };
+=======
+
+@Injectable()
+export class AuthService {
+  constructor(private readonly jwtService: JwtService) {}
+
+  validateUser(email: string, password: string): any {
+    // 실제로는 DB에서 사용자 정보를 조회하고 검증해야 함.
+    if (email === 'test@example.com' && password === 'password') {
+      return { id: 1, email };
+    }
+    return null;
+  }
+
+  generateJwtToken(user: any): string {
+    const payload = { email: user.email, sub: user.id };
+>>>>>>> main
     return this.jwtService.sign(payload);
   }
 }

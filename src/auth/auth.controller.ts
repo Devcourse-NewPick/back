@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   Controller,
   Get,
@@ -8,6 +9,9 @@ import {
   Options,
 } from '@nestjs/common';
 import { Response } from 'express';
+=======
+import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
+>>>>>>> main
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -15,6 +19,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+<<<<<<< HEAD
   /**
    * Preflight 요청 허용 (CORS 문제 해결)
    */
@@ -30,12 +35,15 @@ export class AuthController {
   /**
    * Google OAuth 로그인 시작
    */
+=======
+>>>>>>> main
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleLogin() {
     return { message: 'Redirecting to Google OAuth...' };
   }
 
+<<<<<<< HEAD
   /**
    * Google OAuth 콜백 처리 (팝업 연동)
    */
@@ -100,5 +108,29 @@ export class AuthController {
       username: req.user.username,
       profileImg: req.user.profileImg,
     });
+=======
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(@Req() req) {
+    const token = this.authService.generateJwtToken(req.user);
+    return {
+      message: 'Google OAuth login successful',
+      user: req.user,
+      access_token: token,
+    };
+  }
+
+  @Post('login')
+  async login(@Body() loginDto: { email: string; password: string }) {
+    const user = await this.authService.validateUser(
+      loginDto.email,
+      loginDto.password,
+    );
+    if (!user) {
+      return { message: 'Invalid credentials' };
+    }
+    const token = this.authService.generateJwtToken(user);
+    return { access_token: token };
+>>>>>>> main
   }
 }

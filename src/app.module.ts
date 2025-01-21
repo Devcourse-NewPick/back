@@ -10,15 +10,14 @@ import { FeedbackModule } from './feedback/feedback.module'; // 피드백 모듈
 import { RedisDatabaseModule } from './database/redis/redis.module'; // Redis 모듈
 import { MyPageModule } from './mypage/mypage.module'; // 마이페이지 모듈
 import { AdminModule } from './admin/admin.module'; // 관리자 페이지 모듈
-import { PrismaModule } from '../prisma/prisma.module';
-import { OpenAiService } from './ai-summary/openai.service';
+import { PrismaModule } from '../prisma/prisma.module'; // Prisma 모듈
+import { OpenAiService } from './ai-summary/openai.service'; // OpenAI 서비스
 import { MongooseModule } from '@nestjs/mongoose';
-import {
-  CrawledNews,
-  CrawledNewsSchema,
-} from './crawling/schema/crwaled-news.schema';
-import { SubscriberModule } from './subscriber/subscriber.module';
-import { UserModule } from './user/user.module';
+import { CrawledNews, CrawledNewsSchema } from './crawling/schema/crwaled-news.schema'; // 크롤링 스키마
+import { SubscriberModule } from './subscriber/subscriber.module'; // 구독자 모듈
+import { UserModule } from './user/user.module'; // 유저 모듈
+import { MailModule } from './mail/mail.module'; // 메일 모듈
+import { MailService } from './mail/mail.service'; // 메일 서비스
 
 @Module({
   imports: [
@@ -27,7 +26,7 @@ import { UserModule } from './user/user.module';
       isGlobal: true,
       envFilePath: '.env', // 환경 변수 파일을 명시적으로 설정
     }),
-    MongooseModule.forRoot(process.env.MONGO_URL),
+    MongooseModule.forRoot(process.env.MONGO_URL), // MongoDB 연결
     MongooseModule.forFeature([
       {
         name: CrawledNews.name,
@@ -42,13 +41,14 @@ import { UserModule } from './user/user.module';
     NewsletterModule, // 뉴스레터 모듈
     FeedbackModule, // 피드백 모듈
     RedisDatabaseModule, // Redis 모듈
-    PrismaModule,
+    PrismaModule, // Prisma 모듈
     MyPageModule, // 마이페이지 모듈 추가
     AdminModule, // 관리자 페이지 모듈 추가
-    SubscriberModule, // 추가된 모듈
+    SubscriberModule, // 구독자 모듈
     UserModule, // 유저 모듈
+    MailModule, // 메일 모듈
   ],
   controllers: [AppController], // 컨트롤러 등록
-  providers: [AppService, OpenAiService], // 서비스 등록
+  providers: [AppService, OpenAiService, MailService], // 서비스 등록
 })
 export class AppModule {}
