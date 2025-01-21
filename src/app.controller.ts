@@ -1,5 +1,5 @@
 import { Controller, Body, Post } from '@nestjs/common';
-import { OpenAiService } from './openai.service';
+import { OpenAiService } from './ai-summary/openai.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 
 @Controller('ai-summary')

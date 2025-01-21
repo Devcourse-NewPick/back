@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-<<<<<<< HEAD
 import { MysqlPrismaService } from 'prisma/mysql.service';
 
 @Injectable()
@@ -14,6 +13,8 @@ export class AuthService {
    * Google Auth 사용자 검증 또는 생성
    * @param googleSub Google Auth의 고유 사용자 ID
    * @param email 사용자 이메일
+   * @param username 사용자 이름
+   * @param profileImg 프로필 이미지 URL
    */
   async validateOrCreateGoogleUser(
     googleSub: string,
@@ -30,13 +31,12 @@ export class AuthService {
       user = await this.prisma.user.create({
         data: {
           email,
-          username, // Google displayName 저장
-          profileImg, // Google 프로필 이미지 저장
+          username,
+          profileImg,
         },
         select: { id: true, email: true, username: true, profileImg: true },
       });
     } else {
-      // 기존 사용자의 username이 없거나 변경되었으면 업데이트
       if (!user.username || user.username !== username || !user.profileImg) {
         user = await this.prisma.user.update({
           where: { email },
@@ -50,38 +50,34 @@ export class AuthService {
   }
 
   /**
-   * JWT 토큰 생성
-   * @param user 사용자 정보
+   * 일반 사용자 검증
+   * @param email 사용자 이메일
+   * @param password 사용자 비밀번호
    */
-  generateJwtToken(user: {
-    id: number;
-    email: string;
-    username: string;
-    profileImg: string;
-  }): string {
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      username: user.username,
-      profileImg: user.profileImg,
-    };
-=======
-
-@Injectable()
-export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
-
-  validateUser(email: string, password: string): any {
-    // 실제로는 DB에서 사용자 정보를 조회하고 검증해야 함.
+  async validateUser(email: string, password: string): Promise<any> {
+    // 예시: 실제로는 DB에서 사용자 정보를 조회하고 비밀번호를 비교해야 함.
     if (email === 'test@example.com' && password === 'password') {
       return { id: 1, email };
     }
     return null;
   }
 
-  generateJwtToken(user: any): string {
-    const payload = { email: user.email, sub: user.id };
->>>>>>> main
+  /**
+   * JWT 토큰 생성
+   * @param user 사용자 정보
+   */
+  generateJwtToken(user: {
+    id: number;
+    email: string;
+    username?: string;
+    profileImg?: string;
+  }): string {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      username: user.username || null,
+      profileImg: user.profileImg || null,
+    };
     return this.jwtService.sign(payload);
   }
 }
