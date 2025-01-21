@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:root@localhost:3308/newpick"
+}
+
+model User {
+  id                      Int                 @id @default(autoincrement())
+  email                   String              @unique
+  password                String?
+  username                String?
+  profileImg              String?
+  interests               Json?
+  timezone                String              @default("UTC")
+  frequency               String              @default("weekly")
+  role                    String              @default("user")
+  notificationPreferences Json?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  bookmarks               Bookmark[]
+  feedbacks               Feedback[]
+  newsletterArchives      NewsletterArchive[]
+  newsletters             Newsletter[]
+  oAuthTokens             OAuthToken[]
+  retryQueues             RetryQueue[]
+  subscribers             Subscriber[]
+
+  @@map("users")
+}
+
+model Subscriber {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  startedAt DateTime  @default(now())
+  endAt     DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "subscribers_userId_fkey")
+  @@map("subscribers")
+}
+
+model OAuthToken {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  accessToken  String   @db.Text
+  refreshToken String   @db.Text
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "oauth_tokens_userId_fkey")
+  @@map("oauth_tokens")
+}
+
+model Newsletter {
+  id         Int                 @id @default(autoincrement())
+  title      String
+  content    String              @db.Text
+  categoryId Int
+  userId     Int
+  viewcount  Int                 @default(0)
+  createdAt  DateTime            @default(now())
+  feedbacks  Feedback[]
+  archives   NewsletterArchive[]
+  category   NewsCategory        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId], map: "newsletters_categoryId_fkey")
+  @@index([userId], map: "newsletters_userId_fkey")
+  @@map("newsletters")
+}
+
+model NewsCategory {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?      @db.Text
+  newsletters Newsletter[]
+
+  @@map("news_categories")
+}
+
+model Feedback {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  newsletterId Int
+  comments     String?    @db.Text
+  createdAt    DateTime   @default(now())
+  likes        Boolean    @default(false)
+  newsId       Int
+  newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([newsletterId], map: "feedbacks_newsletterId_fkey")
+  @@index([userId], map: "feedbacks_userId_fkey")
+  @@map("feedbacks")
+}
+
+model RetryQueue {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  email     String
+  status    String   @default("대기 중")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "retry_queues_userId_fkey")
+  @@map("retry_queues")
+}
+
+model NewsletterArchive {
+  id           Int        @id @default(autoincrement())
+  newsletterId Int
+  userId       Int
+  sentAt       DateTime
+  archiveDate  DateTime   @default(now())
+  newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([newsletterId], map: "newsletter_archives_newsletterId_fkey")
+  @@index([userId], map: "newsletter_archives_userId_fkey")
+  @@map("newsletter_archives")
+}
+
+model AiProcessLog {
+  id          Int      @id @default(autoincrement())
+  newsId      Int
+  processType String
+  result      String   @db.Text
+  duration    Float
+  createdAt   DateTime @default(now())
+  status      String
+
+  @@map("ai_process_logs")
+}
+
+model Bookmark {
+  id     Int    @id @default(autoincrement())
+  title  String
+  url    String
+  userId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "bookmarks_userId_fkey")
+  @@map("bookmarks")
+}

@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URL")
+  models   = [CrawledNews]
+}
+
+datasource db2 {
+  provider = "mysql"
+  url      = env("MYSQL_URL")
+  models   = [User, Subscriber, OAuthToken, Newsletter, NewsCategory, Feedback, RetryQueue, NewsletterArchive, AiProcessLog]
+}
+
+// CrawledNews 테이블 (MongoDB)
+model CrawledNews {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  url          String    @unique
+  summary      String?   
+  source       String?   
+  countryCode  String?   
+  publishedAt  DateTime?  
+  createdAt    DateTime  @default(now())
+  categoryName String[]
+  img          String?
+
+  @@map("crawled_news")
+}
+
+// User 테이블 (MySQL)
+model User {
+  id                      Int       @id @default(autoincrement())
+  email                   String    @unique
+  password                String?
+  username                String?
+  profileImg              String?
+  interests               Json?
+  timezone                String    @default("UTC")
+  frequency               String    @default("weekly")
+  role                    String    @default("user")
+  notificationPreferences Json?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  subscribers             Subscriber[]
+  oAuthTokens            OAuthToken[]
+  newsletters            Newsletter[]
+  feedbacks              Feedback[]
+  retryQueues            RetryQueue[]
+  newsletterArchives     NewsletterArchive[]
+
+  @@map("users")
+}
+
+model Subscriber {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  startedAt DateTime  @default(now())
+  endAt     DateTime?
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscribers")
+}
+
+model OAuthToken {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  accessToken  String   @db2.Text
+  refreshToken String   @db2.Text
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("oauth_tokens")
+}
+
+model Newsletter {
+  id         Int       @id @default(autoincrement())
+  title      String
+  content    String    @db2.Text
+  categoryId Int
+  userId     Int
+  viewcount  Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   NewsCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  feedbacks  Feedback[]
+  archives   NewsletterArchive[]
+
+  @@map("newsletters")
+}
+
+model NewsCategory {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String?    @db2.Text
+
+  newsletters Newsletter[]
+
+  @@map("news_categories")
+}
+
+model Feedback {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  newsletterId  Int
+  rating        Int
+  comments      String?   @db2.Text
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter    Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+
+  @@map("feedbacks")
+}
+
+model RetryQueue {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  email     String
+  status    String    @default("대기 중")
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("retry_queues")
+}
+
+model NewsletterArchive {
+  id           Int       @id @default(autoincrement())
+  newsletterId Int
+  userId       Int
+  sentAt       DateTime
+  archiveDate  DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+
+  @@map("newsletter_archives")
+}
+
+model AiProcessLog {
+  id          Int       @id @default(autoincrement())
+  newsId      Int
+  processType String
+  result      String    @db2.Text
+  duration    Float
+  createdAt   DateTime  @default(now())
+  status      String
+
+  @@map("ai_process_logs")
+}
