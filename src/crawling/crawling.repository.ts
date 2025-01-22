@@ -11,7 +11,7 @@ export class CrawlingRepository {
   ) {}
 
   private readonly logger = new Logger(CrawlingRepository.name);
-
+  // 크롤링 데이터 저장
   async createCrawledNews(dataArray: CrawledNews[]): Promise<CrawledNews[]> {
     const news: CrawledNews[] = [];
     try {
@@ -29,11 +29,11 @@ export class CrawlingRepository {
       throw error;
     }
   }
-
+  // 가장 최근 크롤링 데이터 조회
   async getLatestCrawledNews(): Promise<CrawledNews> {
     return await this.crawledNews.findOne().sort({ createdAt: -1 });
   }
-
+  // 크롤링 데이터 조회
   async getCrawledNews(dateStart: string, dateEnd: string): Promise<CrawledNews[]> {
     const startDate = dayjs(dateStart).format('YYYY-MM-DD');
     const endDate = dayjs(dateEnd).format('YYYY-MM-DD');
@@ -50,8 +50,16 @@ export class CrawlingRepository {
       throw error;
     }
   }
-
-  async deleteCrawledNews(dateStart: string, dateEnd: string): Promise<CrawledNews[]> {
-    return
+  // 30일 이전 크롤링 데이터 삭제
+  async deleteCrawledNews(): Promise<number> {
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - 30);
+    try {
+      const result = await this.crawledNews.deleteMany({ createdAt: { $lt: daysAgo } });
+      return result.deletedCount || 0;
+    } catch (error) {
+      this.logger.error(`Failed to delete data: ${error.message}`);
+      throw error;
+    }
   }
 }
