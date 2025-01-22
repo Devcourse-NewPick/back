@@ -180,7 +180,7 @@ npm run test:mysql
 > [!WARNING]
 > **prisma/generate, migrations 파일은 commit 하지 마세요.**
 #### MongoDB
-- **Connection URL**: `mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet`
+- **Connection URL**: 예시 👉🏼 `mongodb://root:root@localhost:27017,localhost:27018,localhost:27019/newpick?authSource=admin&replicaSet=myReplicaSet`
 - **GUI**: MongoDB Compass
 ```bash
 # DB와 연결 확인 테스트
