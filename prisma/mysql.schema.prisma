@@ -7,32 +7,33 @@ datasource db {
   url      = "mysql://root:root@localhost:3308/newpick"
 }
 
-// User 테이블
+// User 모델
 model User {
-  id                       Int      @id @default(autoincrement())
-  email                    String   @unique
-  password                 String
-  username                 String?
-  profileImg               String?
-  interests                Json?
-  timezone                 String   @default("UTC")
-  frequency                String   @default("weekly") // 발송 주기
-  role                     String   @default("user")
-  notificationPreferences  Json?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  id                      Int                 @id @default(autoincrement())
+  email                   String              @unique
+  password                String
+  username                String?
+  profileImg              String?
+  interests               Json?
+  timezone                String              @default("UTC")
+  frequency               String              @default("weekly") // 발송 주기
+  role                    String              @default("user")
+  notificationPreferences Json?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
 
-  subscribers              Subscriber[]
-  oAuthTokens             OAuthToken[]
-  newsletters             Newsletter[]
+  bookmarks               Bookmark[]
   feedbacks               Feedback[]
-  retryQueues             RetryQueue[]
   newsletterArchives      NewsletterArchive[]
+  newsletters             Newsletter[]
+  oAuthTokens             OAuthToken[]
+  retryQueues             RetryQueue[]
+  subscribers             Subscriber[]
 
   @@map("users")
 }
 
-// Subscribers 테이블
+// Subscriber 모델
 model Subscriber {
   id        Int      @id @default(autoincrement())
   userId    Int
@@ -44,7 +45,7 @@ model Subscriber {
   @@map("subscribers")
 }
 
-// OAuthToken 테이블
+// OAuthToken 모델
 model OAuthToken {
   id           Int      @id @default(autoincrement())
   userId       Int
@@ -58,37 +59,37 @@ model OAuthToken {
   @@map("oauth_tokens")
 }
 
-// Newsletter 테이블
+// Newsletter 모델
 model Newsletter {
-  id         Int      @id @default(autoincrement())
+  id         Int                 @id @default(autoincrement())
   title      String
-  content    String   @db.Text
+  content    String              @db.Text
   categoryId Int
-  userId     Int?
-  viewcount  Int      @default(0)
-  usedNews   String   @db.Text
-  createdAt  DateTime @default(now())
+  userId     Int
+  viewcount  Int                 @default(0)
+  usedNews   String              @db.Text
+  createdAt  DateTime            @default(now())
 
-  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category   NewsCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   NewsCategory        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   feedbacks  Feedback[]
   archives   NewsletterArchive[]
 
   @@map("newsletters")
 }
 
-// NewsCategory 테이블
+// NewsCategory 모델
 model NewsCategory {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  description String?   @db.Text
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?      @db.Text
 
   newsletters Newsletter[]
 
   @@map("news_categories")
 }
 
-// Feedback 테이블
+// Feedback 모델
 model Feedback {
   id            Int      @id @default(autoincrement())
   userId        Int
@@ -96,6 +97,8 @@ model Feedback {
   rating        Int
   comments      String?  @db.Text
   createdAt     DateTime @default(now())
+  likes         Boolean  @default(false)
+  newsId        Int
 
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   newsletter    Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
@@ -103,7 +106,7 @@ model Feedback {
   @@map("feedbacks")
 }
 
-// RetryQueue 테이블
+// RetryQueue 모델
 model RetryQueue {
   id        Int      @id @default(autoincrement())
   userId    Int
@@ -116,7 +119,7 @@ model RetryQueue {
   @@map("retry_queues")
 }
 
-// NewsletterArchive 테이블
+// NewsletterArchive 모델
 model NewsletterArchive {
   id           Int      @id @default(autoincrement())
   newsletterId Int
@@ -130,7 +133,7 @@ model NewsletterArchive {
   @@map("newsletter_archives")
 }
 
-// AiProcessLog 테이블
+// AiProcessLog 모델
 model AiProcessLog {
   id          Int      @id @default(autoincrement())
   newsId      String   @db.Text
@@ -143,4 +146,16 @@ model AiProcessLog {
   token       Int
 
   @@map("ai_process_logs")
+}
+
+// Bookmark 모델
+model Bookmark {
+  id     Int    @id @default(autoincrement())
+  title  String
+  url    String
+  userId Int
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("bookmarks")
 }
