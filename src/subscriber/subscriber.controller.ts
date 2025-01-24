@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Query,
   ParseIntPipe,
@@ -25,7 +26,7 @@ export class SubscriberController {
    * 구독 종료
    * @param userId 사용자 ID
    */
-  @Post('end')
+  @Delete('end')
   async endSubscription(@Body('userId', ParseIntPipe) userId: number) {
     return this.subscriberService.endSubscription(userId);
   }
@@ -40,7 +41,7 @@ export class SubscriberController {
   }
 
   /**
-   * 전체 구독 기록 조회
+   * 구독 기록 조회
    * @param userId 사용자 ID
    */
   @Get('history')
