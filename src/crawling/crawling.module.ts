@@ -9,18 +9,12 @@ import { CrawledNews, CrawledNewsSchema } from './schema/crawling.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: CrawledNews.name, schema: CrawledNewsSchema }]),
+    MongooseModule.forFeature([
+      { name: CrawledNews.name, schema: CrawledNewsSchema },
+    ]),
   ],
-  providers: [
-    UtilService,
-    CrawlerService,
-    CrawlingService,
-    CrawlingRepository,
-  ],
-  exports: [
-    CrawlingService,
-    CrawlingRepository,
-  ],
+  providers: [UtilService, CrawlerService, CrawlingService, CrawlingRepository],
+  exports: [CrawlingService, CrawlingRepository],
   controllers: [CrawlingController],
 })
 export class CrawlingModule {}

@@ -19,7 +19,6 @@ export class CreateNewsletterService {
         title: title,
         content: summary,
         categoryId: categoryId,
-        userId: null,
         createdAt: new Date(),
         usedNews,
         viewcount: 0,
