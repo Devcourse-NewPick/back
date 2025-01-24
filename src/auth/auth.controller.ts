@@ -67,13 +67,13 @@ export class AuthController {
       const token = '${token}';
       if (window.opener) {
         window.opener.postMessage(
-          { type: 'oauthSuccess', token },
-          'http://localhost:3000'
+          { type: 'oauthSuccess', token, user },
+          'http://localhost:3001'
         );
       } else if (window.parent) {
         window.parent.postMessage(
-          { type: 'oauthSuccess', token },
-          'http://localhost:3000'
+          { type: 'oauthSuccess', token, user },
+          'http://localhost:3001'
         );
       }
       window.close();
@@ -81,28 +81,28 @@ export class AuthController {
   `);
   }
 
-  /**
-   * 사용자 정보 반환
-   */
-  @Get('user')
-  @UseGuards(AuthGuard('jwt'))
-  async getUser(@Req() req, @Res() res: Response) {
-    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // /**
+  //  * 사용자 정보 반환
+  //  */
+  // @Get('user')
+  // @UseGuards(AuthGuard('jwt'))
+  // async getUser(@Req() req, @Res() res: Response) {
+  //   res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  //   res.header('Access-Control-Allow-Credentials', 'true');
+  //   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  //   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+  //   if (!req.user) {
+  //     return res.status(401).json({ message: 'Unauthorized' });
+  //   }
 
-    res.json({
-      id: req.user.sub,
-      email: req.user.email,
-      username: req.user.username,
-      profileImg: req.user.profileImg,
-    });
-  }
+  //   res.json({
+  //     id: req.user.sub,
+  //     email: req.user.email,
+  //     username: req.user.username,
+  //     profileImg: req.user.profileImg,
+  //   });
+  // }
 
   /**
    * 일반 로그인 처리
