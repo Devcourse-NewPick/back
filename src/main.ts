@@ -3,18 +3,42 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  // Nest 앱 생성
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
+
+  // ConfigService 가져오기
+  const configService: ConfigService = app.get(ConfigService);
+
+  // 환경 변수 및 기본값 설정
+  const frontendUrl: string = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
+  const port: number = configService.get<number>('PORT', 3001);
+
+  // CORS 설정
   app.enableCors({
-    // 허용할 도메인 (프론트엔드 서버 주소)
-    origin: configService.get<string>('FRONTEND_URL'),
-    // 허용할 요청 메서드
+    origin: frontendUrl,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    // 허용할 요청 헤더
-    allowedHeaders: ['Content-Type', 'Authorization'], 
-    // 쿠키 전송 허용
-    credentials: true, 
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   });
-  await app.listen(process.env.PORT ?? 3000);
+
+  // Preflight 요청 처리 (추가적으로 안전장치)
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Origin', frontendUrl);
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      return res.sendStatus(204);
+    }
+    next();
+  });
+
+  // 서버 실행
+  try {
+    await app.listen(port);
+    console.log(`Server is running on http://localhost:${port}`);
+  } catch (error) {
+    console.error('Error starting server:', error);
+  }
 }
 bootstrap();
