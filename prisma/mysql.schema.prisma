@@ -24,8 +24,6 @@ model User {
 
   bookmarks               Bookmark[]
   feedbacks               Feedback[]
-  newsletterArchives      NewsletterArchive[]
-  newsletters             Newsletter[]
   oAuthTokens             OAuthToken[]
   retryQueues             RetryQueue[]
   subscribers             Subscriber[]
@@ -65,12 +63,10 @@ model Newsletter {
   title      String
   content    String              @db.Text
   categoryId Int
-  userId     Int
   viewcount  Int                 @default(0)
   usedNews   String              @db.Text
   createdAt  DateTime            @default(now())
 
-  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   category   NewsCategory        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   feedbacks  Feedback[]
   archives   NewsletterArchive[]
@@ -121,13 +117,11 @@ model RetryQueue {
 
 // NewsletterArchive 모델
 model NewsletterArchive {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   newsletterId Int
-  userId       Int
   sentAt       DateTime
-  archiveDate  DateTime @default(now())
+  archiveDate  DateTime   @default(now())
 
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
 
   @@map("newsletter_archives")

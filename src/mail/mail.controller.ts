@@ -12,10 +12,21 @@ export class MailController {
       to: string;
       cc: string;
       newsletterId: number;
-      userId: number;
     },
   ) {
-    const { to, cc, newsletterId, userId } = data;
-    return await this.mailService.sendMail(newsletterId, to, cc, userId);
+    const { to, cc, newsletterId } = data;
+    return await this.mailService.sendMail(newsletterId, to, cc);
+  }
+
+  @Post('send-bulk')
+  async sendBulkMail(
+    @Body()
+    data: {
+      newsletterId: number;
+      recipients: { to: string; cc?: string }[];
+    },
+  ) {
+    const { newsletterId, recipients } = data;
+    return await this.mailService.sendBulkMail(newsletterId, recipients);
   }
 }

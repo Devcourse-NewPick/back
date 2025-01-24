@@ -8,7 +8,6 @@ import { SchedulerModule } from './scheduler/scheduler.module'; // 스케줄러 
 import { AuthModule } from './auth/auth.module'; // 인증 모듈
 import { PrismaModule } from '../prisma/prisma.module'; // Prisma 모듈
 import { AiSummaryModule } from './ai-summary/ai-summary.module'; // AI 요약 모듈
-import { NewsletterModule } from './newsletter/newsletter.module'; // 뉴스레터 모듈
 import { FeedbackModule } from './feedback/feedback.module'; // 피드백 모듈
 import { RedisDatabaseModule } from './database/redis/redis.module'; // Redis 모듈
 import { MyPageModule } from './mypage/mypage.module'; // 마이페이지 모듈
@@ -30,7 +29,6 @@ import { MailService } from './mail/mail.service'; // 메일 서비스
     SchedulerModule, // 스케줄러 모듈
     AuthModule, // 인증 모듈
     AiSummaryModule, // AI 요약 모듈
-    NewsletterModule, // 뉴스레터 모듈
     FeedbackModule, // 피드백 모듈
     RedisDatabaseModule, // Redis 모듈
     PrismaModule, // Prisma 모듈

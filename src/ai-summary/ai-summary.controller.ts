@@ -12,7 +12,10 @@ export class AiSummaryController {
   @Post('summarize')
   async summarize(@Body() data: { dateStart: string; dateEnd: string }) {
     const { dateStart, dateEnd } = data;
-    const news = await this.crawlingRepository.getCrawledNews(dateStart, dateEnd);
+    const news = await this.crawlingRepository.getCrawledNews(
+      dateStart,
+      dateEnd,
+    );
     const summary = await this.openAiService.summarizeText(news);
     return {
       newsIds: news.map((item) => item._id).toString(),
@@ -24,7 +27,10 @@ export class AiSummaryController {
   @Post('get-news')
   async getNews(@Body() data: { dateStart: string; dateEnd: string }) {
     const { dateStart, dateEnd } = data;
-    const news = await this.crawlingRepository.getCrawledNews(dateStart, dateEnd);
+    const news = await this.crawlingRepository.getCrawledNews(
+      dateStart,
+      dateEnd,
+    );
     return {
       count: news.length,
       news,

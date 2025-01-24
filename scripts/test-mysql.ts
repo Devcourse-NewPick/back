@@ -32,7 +32,6 @@ async function main() {
       data: {
         title: faker.lorem.sentence(),
         content: faker.lorem.paragraph(),
-        userId: user.id,
         categoryId: category.id,
         createdAt: new Date(), // 생성 날짜 추가
         usedNews: '', // 사용된 뉴스 필드 초기화
