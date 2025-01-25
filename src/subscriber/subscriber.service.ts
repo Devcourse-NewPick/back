@@ -93,4 +93,43 @@ export class SubscriberService {
       orderBy: { startedAt: 'desc' },
     });
   }
+
+    // 구독 일시정지 (데이터 남아있음)
+  async pauseSubscription(userId: number) {
+    const subscription = await this.prisma.subscriber.findFirst({
+      where: { userId, status: 'active' },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('No active subscription found for this user.');
+    }
+
+    return this.prisma.subscriber.update({
+      where: { id: subscription.id },
+      data: { status: 'paused' },
+    });
+  }
+
+  async cancelSubscription(userId: number) {
+    const subscription = await this.prisma.subscriber.findFirst({
+      where: { userId },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('No subscription found for this user.');
+    }
+
+    // 구독 취소 (데이터 삭제)
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { interests: null },
+    });
+
+    await this.prisma.feedback.deleteMany({ where: { userId } });
+
+    return this.prisma.subscriber.update({
+      where: { id: subscription.id },
+      data: { status: 'cancelled', endAt: new Date() },
+    });
+  }
 }
