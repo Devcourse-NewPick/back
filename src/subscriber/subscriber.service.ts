@@ -24,7 +24,7 @@ export class SubscriberService {
       where: { userId },
     });
 
-    if (existingSubscription && !existingSubscription.endAt) {
+    if (existingSubscription && existingSubscription.status === 'active') {
       throw new ConflictException('User is already subscribed.');
     }
 
@@ -32,69 +32,21 @@ export class SubscriberService {
     return existingSubscription
       ? this.prisma.subscriber.update({
           where: { id: existingSubscription.id },
-          data: { startedAt: new Date(), endAt: null },
+          data: { startedAt: new Date(), endAt: null, status: 'active' },
         })
       : this.prisma.subscriber.create({
           data: {
             userId,
             startedAt: new Date(),
+            status: 'active',
           },
         });
   }
 
   /**
-   * 구독 종료
+   * 구독 일시정지
    * @param userId 사용자 ID
    */
-  async endSubscription(userId: number) {
-    // 활성 구독 확인
-    const activeSubscription = await this.prisma.subscriber.findFirst({
-      where: { userId, endAt: null },
-    });
-
-    if (!activeSubscription) {
-      throw new NotFoundException('No active subscription found.');
-    }
-
-    // 구독 종료
-    return this.prisma.subscriber.update({
-      where: { id: activeSubscription.id },
-      data: { endAt: new Date() },
-    });
-  }
-
-  /**
-   * 현재 구독 상태 조회
-   * @param userId 사용자 ID
-   */
-  async getSubscriptionStatus(userId: number) {
-    const activeSubscription = await this.prisma.subscriber.findFirst({
-      where: { userId, endAt: null },
-    });
-
-    return activeSubscription ? { active: true } : { active: false };
-  }
-
-  /**
-   * 구독 기록 조회
-   * @param userId 사용자 ID
-   */
-  async getSubscriptionHistory(userId: number) {
-    const userExists = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!userExists) {
-      throw new NotFoundException(`User with ID ${userId} does not exist.`);
-    }
-
-    return await this.prisma.subscriber.findMany({
-      where: { userId },
-      orderBy: { startedAt: 'desc' },
-    });
-  }
-
-    // 구독 일시정지 (데이터 남아있음)
   async pauseSubscription(userId: number) {
     const subscription = await this.prisma.subscriber.findFirst({
       where: { userId, status: 'active' },
@@ -110,6 +62,10 @@ export class SubscriberService {
     });
   }
 
+  /**
+   * 구독 해지
+   * @param userId 사용자 ID
+   */
   async cancelSubscription(userId: number) {
     const subscription = await this.prisma.subscriber.findFirst({
       where: { userId },
@@ -130,6 +86,41 @@ export class SubscriberService {
     return this.prisma.subscriber.update({
       where: { id: subscription.id },
       data: { status: 'cancelled', endAt: new Date() },
+    });
+  }
+
+  /**
+   * 현재 구독 상태 조회
+   * @param userId 사용자 ID
+   */
+  async getSubscriptionStatus(userId: number) {
+    const subscription = await this.prisma.subscriber.findFirst({
+      where: { userId, status: { in: ['active', 'paused'] } },
+    });
+
+    if (!subscription) {
+      return { active: false, status: 'none' };
+    }
+
+    return { active: subscription.status === 'active', status: subscription.status };
+  }
+
+  /**
+   * 구독 기록 조회
+   * @param userId 사용자 ID
+   */
+  async getSubscriptionHistory(userId: number) {
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!userExists) {
+      throw new NotFoundException(`User with ID ${userId} does not exist.`);
+    }
+
+    return this.prisma.subscriber.findMany({
+      where: { userId },
+      orderBy: { startedAt: 'desc' },
     });
   }
 }

@@ -23,7 +23,7 @@ export class SubscriberController {
   }
 
   /**
-   * 구독 일시정지 
+   * 구독 일시정지
    * @param userId 사용자 ID
    */
   @Post('pause')
