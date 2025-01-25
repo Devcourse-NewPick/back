@@ -21,7 +21,13 @@
     "test:mongo": "ts-node scripts/test-mongo.ts",
     "test:mysql": "ts-node scripts/test-mysql.ts",
     "prisma:generate:mysql": "prisma generate --schema=prisma/mysql.schema.prisma",
-    "prisma:push:mysql": "prisma migrate dev --schema=prisma/mysql.schema.prisma"
+    "prisma:push:mysql": "prisma migrate dev --schema=prisma/mysql.schema.prisma",
+    "generate:user": "ts-node scripts/generate-user.ts",
+    "generate:subscriber": "ts-node scripts/generate-subscriber.ts",
+    "generate:category": "ts-node scripts/generate-category.ts",
+    "generate:all": "npm run generate:user && npm run generate:subscriber && npm run generate:category",
+    "reset": "ts-node scripts/reset.ts",
+    "prisma:studio": "prisma studio --schema=prisma/mysql.schema.prisma"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.0",
@@ -55,6 +61,7 @@
     "dotenv": "^16.4.7",
     "glob": "^9.3.5",
     "ioredis": "^5.4.2",
+    "jsdom": "^26.0.0",
     "mongoose": "^8.9.5",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",

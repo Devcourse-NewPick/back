@@ -1,4 +1,23 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
+import { CrawlingService } from './crawling.service';
+import { CrawlingRepository } from './crawling.repository';
 
 @Controller('crawling')
-export class CrawlingController {}
+export class CrawlingController {
+  constructor(
+    private readonly crawlingService: CrawlingService,
+    private readonly crawlingRepository: CrawlingRepository,
+  ) {}
+
+  @Get('crawling')
+  async crawling() {
+    return this.crawlingService.crawling();
+  }
+
+  @Get('crawling-detail')
+  async crawlingDetail() {
+    const news = await this.crawlingRepository.getLatestCrawledNews();
+    const oldNews = await this.crawlingRepository.getOldestCrawledNews();
+    return { news: news.createdAt, oldNews: oldNews.createdAt };
+  }
+}

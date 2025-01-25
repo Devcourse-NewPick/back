@@ -13,11 +13,13 @@ export class CreateNewsletterService {
     summary: string,
     usedNews: string,
     categoryId: number,
+    html: string,
   ) {
     const newsletter = await this.prisma.newsletter.create({
       data: {
         title: title,
         content: summary,
+        contentAsHTML: html,
         categoryId: categoryId,
         createdAt: new Date(),
         usedNews,

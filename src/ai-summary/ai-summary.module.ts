@@ -8,6 +8,7 @@ import { CreateNewsletterService } from './createNewsletter.service';
 import { CreateTitleService } from './createTitle.service';
 import { Logger } from '@nestjs/common';
 import OpenAI from 'openai';
+import { HTMLFormatterService } from './parseHtml.service';
 @Module({
   imports: [CrawlingModule, PrismaModule],
   controllers: [AiSummaryController],
@@ -23,12 +24,14 @@ import OpenAI from 'openai';
     FindCategoryService,
     CreateNewsletterService,
     CreateTitleService,
+    HTMLFormatterService,
   ],
   exports: [
     OpenAiService,
     FindCategoryService,
     CreateNewsletterService,
     CreateTitleService,
+    HTMLFormatterService,
     OpenAI,
     Logger,
   ],

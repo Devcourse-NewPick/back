@@ -27,6 +27,23 @@ export class MailController {
     },
   ) {
     const { newsletterId, recipients } = data;
-    return await this.mailService.sendBulkMail(newsletterId, recipients);
+    return await this.mailService.sendBulkMail(
+      newsletterId,
+      recipients.map((recipient) => recipient.to),
+    );
+  }
+
+  @Post('send-html')
+  async sendHtmlMail(
+    @Body()
+    data: {
+      to: string;
+      cc: string;
+      html: string;
+      subject: string;
+    },
+  ) {
+    const { to, cc, html, subject } = data;
+    return await this.mailService.sendHtmlMail(to, cc, html, subject);
   }
 }
