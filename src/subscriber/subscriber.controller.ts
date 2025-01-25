@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Query,
   ParseIntPipe,
@@ -22,12 +23,21 @@ export class SubscriberController {
   }
 
   /**
-   * 구독 종료
+   * 구독 일시정지
    * @param userId 사용자 ID
    */
-  @Post('end')
-  async endSubscription(@Body('userId', ParseIntPipe) userId: number) {
-    return this.subscriberService.endSubscription(userId);
+  @Post('pause')
+  async pauseSubscription(@Body('userId', ParseIntPipe) userId: number) {
+    return this.subscriberService.pauseSubscription(userId);
+  }
+
+  /**
+   * 구독 해지
+   * @param userId 사용자 ID
+   */
+  @Delete('cancel')
+  async cancelSubscription(@Body('userId', ParseIntPipe) userId: number) {
+    return this.subscriberService.cancelSubscription(userId);
   }
 
   /**
@@ -40,7 +50,7 @@ export class SubscriberController {
   }
 
   /**
-   * 전체 구독 기록 조회
+   * 구독 기록 조회
    * @param userId 사용자 ID
    */
   @Get('history')

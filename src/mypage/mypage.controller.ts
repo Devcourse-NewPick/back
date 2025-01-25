@@ -1,7 +1,9 @@
 import {
   Controller,
   Get,
+  Patch,
   Req,
+  Body,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -49,6 +51,31 @@ export class MyPageController {
   async getSubscriptionHistory(@Req() req) {
     const userId = this.validateAndParseUserId(req.user?.userId);
     return this.myPageService.getSubscriptionHistory(userId);
+  }
+
+  /**
+   * 관심사 조회
+   */
+  @Get('interests')
+  async getInterests(@Req() req) {
+    const userId = this.validateAndParseUserId(req.user?.userId);
+    return this.myPageService.getInterests(userId);
+  }
+
+  /**
+   * 관심사 수정
+   */
+  @Patch('interests')
+  async updateInterests(@Req() req, @Body('interests') interests: string[]) {
+    const userId = this.validateAndParseUserId(req.user?.userId);
+    const validInterests = ['정치', '사회', 'IT'];
+
+    // 유효성 검사
+    if (!interests || interests.some((interest) => !validInterests.includes(interest))) {
+      throw new UnauthorizedException('Invalid interests provided');
+    }
+
+    return this.myPageService.updateInterests(userId, interests);
   }
 
   /**

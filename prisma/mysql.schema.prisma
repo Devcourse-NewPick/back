@@ -34,9 +34,10 @@ model User {
 // Subscriber 모델
 model Subscriber {
   id        Int      @id @default(autoincrement())
-  userId    Int
+  userId    Int      @unique // 사용자별 중복 구독 방지
   startedAt DateTime @default(now())
   endAt     DateTime?
+  status    String   @default("active") // 상태 : active, paused, cancelled
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -8,6 +8,10 @@ export class CrawlingController {
     private readonly crawlingService: CrawlingService,
     private readonly crawlingRepository: CrawlingRepository,
   ) {}
+  
+  @Get()
+  async getCrawledNews() {
+    return await this.crawlingRepository.getLatestCrawledNews();
 
   @Get('crawling')
   async crawling() {
