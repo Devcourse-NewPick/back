@@ -35,6 +35,10 @@ export class OpenAiService {
     categoryId: number;
     newsletter: any;
   }> {
+    if (news.length === 0) {
+      this.logger.error('No news found');
+      throw new Error('No news found');
+    }
     const startTime = Date.now();
     this.logger.debug(`요약 시작: ${news.length}개의 뉴스`);
     try {
