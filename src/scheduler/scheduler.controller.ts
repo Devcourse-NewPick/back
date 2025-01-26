@@ -15,21 +15,33 @@ export class SchedulerController {
 
   @Post('crawling')
   toggleCrawling(@Body() data: { enable: boolean }) {
-    const enable = data.enable;
+    const enable = Boolean(data.enable);
     this.schedulerService.toggleCrawlingScheduler(enable);
-    return { success: true, enabled: enable };
+    return {
+      success: true,
+      enabled: enable,
+      message: `크롤링 스케줄러가 ${enable ? '활성화' : '비활성화'} 되었습니다.`,
+    };
   }
 
   @Post('ai-summary')
   toggleAiSummary(@Body() data: { enable: boolean }) {
-    const enable = data.enable;
+    const enable = Boolean(data.enable);
     this.schedulerService.toggleAiSummaryScheduler(enable);
-    return { success: true, enabled: enable };
+    return {
+      success: true,
+      enabled: enable,
+      message: `뉴스레터 스케줄러가 ${enable ? '활성화' : '비활성화'} 되었습니다.`,
+    };
   }
 
   @Get('status')
   getStatus() {
-    return this.schedulerService.getSchedulerStatus();
+    return {
+      isCrawlingEnabled: this.schedulerService.getIsCrawlingEnabled(),
+      isAiSummaryEnabled: this.schedulerService.getIsAiSummaryEnabled(),
+      message: '스케줄러 상태 조회 완료',
+    };
   }
 
   @Get('get-recievers') // 테스트용
