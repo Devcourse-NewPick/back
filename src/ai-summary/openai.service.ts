@@ -5,7 +5,7 @@ import { FindCategoryService } from './findCategory.service';
 import { CreateNewsletterService } from './createNewsletter.service';
 import { CreateTitleService } from './createTitle.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
-
+import { HTMLFormatterService } from './parseHtml.service';
 // export interface News {
 //   _id?: string;
 //   title: string;
@@ -26,6 +26,7 @@ export class OpenAiService {
     private readonly findCategoryService: FindCategoryService,
     private readonly createNewsletterService: CreateNewsletterService,
     private readonly createTitleService: CreateTitleService,
+    private readonly htmlFormatterService: HTMLFormatterService,
   ) {}
 
   async summarizeText(news: CrawledNews[]): Promise<{
@@ -35,7 +36,7 @@ export class OpenAiService {
     newsletter: any;
   }> {
     const startTime = Date.now();
-
+    this.logger.debug(`요약 시작: ${news.length}개의 뉴스`);
     try {
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -56,12 +57,12 @@ export class OpenAiService {
       const summary = response.choices[0].message.content;
       const token = response.usage?.total_tokens;
       const duration = (Date.now() - startTime) / 1000;
-      const newsId = news.map((item) => item._id).toString();
-      console.log(response);
+      const newslinks = news.map((item) => item.link).toString();
+      this.logger.debug(`요약 완료: ${summary}`);
 
       await this.prisma.aiProcessLog.create({
         data: {
-          newsId: newsId,
+          newsId: newslinks,
           processType: 'summarization',
           result: summary,
           duration: duration,
@@ -73,23 +74,23 @@ export class OpenAiService {
 
       const categoryId = await this.findCategoryService.findCategory(summary);
       const title = await this.createTitleService.createTitle(summary);
+      const html = await this.htmlFormatterService.formatHtml(summary);
 
       const newsletter = await this.createNewsletterService.createNewsletter(
         title,
         summary,
-        newsId,
+        newslinks,
         categoryId,
+        html,
       );
-
-      this.logger.debug(`요약 완료: ${newsletter.id}`);
 
       return { summary, openai: response, categoryId, newsletter };
     } catch (error) {
       const duration = (Date.now() - startTime) / 1000;
-      const newsId = news.map((item) => item._id).toString();
+      const newsIds = news.map((item) => item._id).toString();
       await this.prisma.aiProcessLog.create({
         data: {
-          newsId: newsId,
+          newsId: newsIds,
           processType: 'summarization',
           result: error.message,
           duration: duration,

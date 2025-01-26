@@ -1,12 +1,14 @@
 import { Controller, Body, Post } from '@nestjs/common';
 import { OpenAiService } from './openai.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
+import { Logger } from '@nestjs/common';
 
 @Controller('ai-summary')
 export class AiSummaryController {
   constructor(
     private readonly openAiService: OpenAiService,
     private readonly crawlingRepository: CrawlingRepository,
+    private readonly logger: Logger,
   ) {}
 
   @Post('summarize')
@@ -16,9 +18,22 @@ export class AiSummaryController {
       dateStart,
       dateEnd,
     );
-    const summary = await this.openAiService.summarizeText(news);
+    this.logger.debug(
+      news.dateStart,
+      news.dateEnd,
+      `검색된 뉴스 수: ${news.news.length}`,
+    );
+    if (news.news.length === 0) {
+      this.logger.error('No news found');
+      throw new Error('No news found');
+      return {
+        success: false,
+        message: 'No news found',
+      };
+    }
+    const summary = await this.openAiService.summarizeText(news.news);
     return {
-      newsIds: news.map((item) => item._id).toString(),
+      newsLinks: news.news.map((item) => item.link).toString(),
       summary: summary.summary,
       openaiResponse: summary.openai,
     };
@@ -32,8 +47,8 @@ export class AiSummaryController {
       dateEnd,
     );
     return {
-      count: news.length,
-      news,
+      count: news.news.length,
+      news: news.news,
     };
   }
 }

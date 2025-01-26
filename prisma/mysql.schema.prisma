@@ -60,17 +60,18 @@ model OAuthToken {
 
 // Newsletter 모델
 model Newsletter {
-  id         Int                 @id @default(autoincrement())
+  id         Int            @id @default(autoincrement())
   title      String
-  content    String              @db.Text
+  content    String         @db.Text
+  contentAsHTML String? @db.Text
   categoryId Int
-  viewcount  Int                 @default(0)
-  usedNews   String              @db.Text
-  createdAt  DateTime            @default(now())
+  viewcount  Int           @default(0)
+  usedNews   String         @db.Text
+  createdAt  DateTime       @default(now())
 
-  category   NewsCategory        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   NewsCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   feedbacks  Feedback[]
-  archives   NewsletterArchive[]
+  archives   EmailArchive[]
 
   @@map("newsletters")
 }
@@ -116,16 +117,16 @@ model RetryQueue {
   @@map("retry_queues")
 }
 
-// NewsletterArchive 모델
-model NewsletterArchive {
+// EmailArchive 모델
+model EmailArchive {
   id           Int        @id @default(autoincrement())
   newsletterId Int
   sentAt       DateTime
-  archiveDate  DateTime   @default(now())
+  email        String
 
   newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
 
-  @@map("newsletter_archives")
+  @@map("email_archives")
 }
 
 // AiProcessLog 모델

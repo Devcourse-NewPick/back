@@ -154,6 +154,9 @@ docker compose up -d
 
 # 5. 개발 서버 실행
 npm run start:dev
+
+# 6. 초기 더미데이터 생성
+npm run generate:all
 ```
 
 ---
@@ -210,7 +213,7 @@ npx prisma migrate dev --name add_field --schema=prisma/mysql.schema.prisma
 ```
 #### 2. Prisma Studio 접속 및 데이터 관리
 ```bash
-npx prisma studio --schema=prisma/mysql.schema.prisma
+npm run prisma:studio
 ```
 - **접속 방법**:
    - 위 명령어 실행
