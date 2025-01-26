@@ -39,6 +39,8 @@ export class MyPageService {
       select: {
         newsId: true,
         createdAt: true,
+        newsletterId: true, // 추가: newsletterId를 포함한 데이터 반환
+        rating: true, // 추가: rating 필드 반환
       },
     });
 

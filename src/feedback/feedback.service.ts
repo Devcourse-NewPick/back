@@ -1,11 +1,20 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 
 @Injectable()
 export class FeedbackService {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
-  async addBookmark(userId: number, newsId: number) {
+  async addBookmark(
+    userId: number,
+    newsId: number,
+    newsletterId?: number,
+    rating?: number,
+  ) {
     // 중복 체크
     const existingBookmark = await this.prisma.feedback.findFirst({
       where: { userId, newsId, likes: true },
@@ -15,13 +24,28 @@ export class FeedbackService {
       throw new ConflictException('This item is already bookmarked.');
     }
 
+    // newsletterId가 있는 경우 유효성 검사
+    if (newsletterId) {
+      const existingNewsletter = await this.prisma.newsletter.findUnique({
+        where: { id: newsletterId },
+      });
+
+      if (!existingNewsletter) {
+        throw new NotFoundException(
+          'Newsletter with the given ID does not exist.',
+        );
+      }
+    }
+
     // 북마크 등록
     return this.prisma.feedback.create({
       data: {
-        userId: userId,
+        user: { connect: { id: userId } },
         newsId: newsId,
         likes: true,
         createdAt: new Date(),
+        ...(newsletterId && { newsletter: { connect: { id: newsletterId } } }),
+        rating: rating ?? 0, // 기본값 추가
       },
     });
   }

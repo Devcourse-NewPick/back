@@ -90,15 +90,15 @@ model NewsCategory {
 model Feedback {
   id            Int      @id @default(autoincrement())
   userId        Int
-  newsletterId  Int
-  rating        Int
+  newsletterId  Int?
+  rating        Int?
   comments      String?  @db.Text
   createdAt     DateTime @default(now())
   likes         Boolean  @default(false)
   newsId        Int
 
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  newsletter    Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  newsletter    Newsletter? @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
 
   @@map("feedbacks")
 }
