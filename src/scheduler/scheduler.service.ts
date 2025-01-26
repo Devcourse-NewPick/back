@@ -8,8 +8,8 @@ import { OpenAiService } from 'src/ai-summary/openai.service';
 import dayjs from 'dayjs';
 @Injectable()
 export class SchedulerService {
-  private isCrawlingEnabled = true;
-  private isAiSummaryEnabled = true;
+  private isCrawlingEnabled = false;
+  private isAiSummaryEnabled = false;
   constructor(
     private readonly crawlingService: CrawlingService,
     private readonly crawlingRepository: CrawlingRepository,
@@ -57,17 +57,13 @@ export class SchedulerService {
   }
 
   toggleCrawlingScheduler(enable: boolean) {
-    this.isCrawlingEnabled = enable;
-    this.logger.log(
-      `크롤링 스케줄러가 ${enable ? '활성화' : '비활성화'} 되었습니다.`,
-    );
+    this.isCrawlingEnabled = Boolean(enable);
+    this.logger.debug(this.isCrawlingEnabled ? '활성화' : '비활성화');
   }
 
   toggleAiSummaryScheduler(enable: boolean) {
     this.isAiSummaryEnabled = enable;
-    this.logger.log(
-      `뉴스레터 스케줄러가 ${enable ? '활성화' : '비활성화'} 되었습니다.`,
-    );
+    this.logger.debug(this.isAiSummaryEnabled ? '활성화' : '비활성화');
   }
 
   getSchedulerStatus() {
@@ -75,5 +71,13 @@ export class SchedulerService {
       crawling: this.isCrawlingEnabled,
       aiSummary: this.isAiSummaryEnabled,
     };
+  }
+
+  getIsCrawlingEnabled(): boolean {
+    return this.isCrawlingEnabled;
+  }
+
+  getIsAiSummaryEnabled(): boolean {
+    return this.isAiSummaryEnabled;
   }
 }
