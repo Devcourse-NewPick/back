@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { MailService } from 'src/mail/mail.service';
@@ -16,7 +16,6 @@ export class SchedulerService {
     private readonly mailService: MailService,
     private readonly getRecieverService: GetRecieverService,
     private readonly openAiService: OpenAiService,
-    private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
   private readonly logger = new Logger(SchedulerService.name);
 
