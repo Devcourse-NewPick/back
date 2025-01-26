@@ -31,7 +31,6 @@ export class MyPageController {
   @Get('bookmarks')
   async getBookmarks(@Req() req) {
     const userId = this.validateAndParseUserId(req.user?.userId);
-    console.log(req.user); // userId를 제대로 가져오는지 확인
     return this.myPageService.getBookmarks(userId);
   }
 
