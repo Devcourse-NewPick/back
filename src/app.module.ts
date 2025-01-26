@@ -17,6 +17,7 @@ import { UserModule } from './user/user.module'; // 유저 모듈
 import { MailModule } from './mail/mail.module'; // 메일 모듈
 import { OpenAiService } from './ai-summary/openai.service'; // OpenAI 서비스
 import { MailService } from './mail/mail.service'; // 메일 서비스
+import { CategoryModule } from './category/category.module'; // 카테고리 모듈
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MailService } from './mail/mail.service'; // 메일 서비스
     SubscriberModule, // 구독자 모듈
     UserModule, // 유저 모듈
     MailModule, // 메일 모듈
+    CategoryModule, // 카테고리 모듈
   ],
   controllers: [AppController], // 컨트롤러 등록
   providers: [AppService, OpenAiService, MailService], // 서비스 등록
