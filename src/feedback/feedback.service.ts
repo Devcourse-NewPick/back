@@ -24,17 +24,18 @@ export class FeedbackService {
       throw new ConflictException('This item is already bookmarked.');
     }
 
-    // newsletterId가 있는 경우 유효성 검사
-    if (newsletterId) {
-      const existingNewsletter = await this.prisma.newsletter.findUnique({
-        where: { id: newsletterId },
+    // newsletterId가 없는 경우 자동 연결
+    if (!newsletterId) {
+      const relatedNewsletter = await this.prisma.newsletter.findFirst({
+        where: { usedNews: { contains: newsId.toString() } },
       });
 
-      if (!existingNewsletter) {
+      if (!relatedNewsletter) {
         throw new NotFoundException(
-          'Newsletter with the given ID does not exist.',
+          'Related newsletter not found for the given newsId.',
         );
       }
+      newsletterId = relatedNewsletter.id;
     }
 
     // 북마크 등록
@@ -44,7 +45,7 @@ export class FeedbackService {
         newsId: newsId,
         likes: true,
         createdAt: new Date(),
-        ...(newsletterId && { newsletter: { connect: { id: newsletterId } } }),
+        newsletter: { connect: { id: newsletterId } },
         rating: rating ?? 0, // 기본값 추가
       },
     });
