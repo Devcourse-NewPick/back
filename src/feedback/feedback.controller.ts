@@ -5,8 +5,9 @@ import { FeedbackService } from './feedback.service';
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
 
-  @Post()
-  async createFeedback(@Body('content') content: string) {
-    return this.feedbackService.saveFeedback(content);
+  @Post('bookmark')
+  async addBookmark(@Body() body: { userId: number; newsId: number }) {
+    const { userId, newsId } = body;
+    return this.feedbackService.addBookmark(userId, newsId);
   }
 }

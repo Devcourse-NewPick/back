@@ -34,15 +34,19 @@ export class MyPageService {
    * @param userId 사용자 ID
    */
   async getBookmarks(userId: number) {
-    return this.prisma.feedback.findMany({
+    const bookmarks = await this.prisma.feedback.findMany({
       where: { userId, likes: true },
       select: {
-        newsId: true, // 개별 뉴스 ID
-        newsletterId: true, // 뉴스레터 ID
-        comments: true,
+        newsId: true,
         createdAt: true,
       },
     });
+
+    if (!bookmarks.length) {
+      throw new NotFoundException('No bookmarks found for this user.');
+    }
+
+    return bookmarks;
   }
 
   /**
