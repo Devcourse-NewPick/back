@@ -14,14 +14,13 @@ export class MemoryMonitorService {
     const totalMemory = os.totalmem();
     const freeMemory = os.freemem();
 
-    // macOS의 실제 사용 가능한 메모리를 고려한 계산
+    // 모든 운영체제에서 일관된 메모리 사용량 계산
     const processMemoryUsagePercent = (used.rss / totalMemory) * 100;
 
-    // 시스템 메모리 사용률 계산 수정
-    // macOS는 사용 가능한 메모리를 다르게 관리하므로, 실제 프로세스가 사용하는 메모리만 고려
-    const systemMemoryUsagePercent = (used.rss / totalMemory) * 100;
+    // 시스템 메모리 사용률 계산
+    const systemMemoryUsagePercent =
+      ((totalMemory - freeMemory) / totalMemory) * 100;
 
-    // 로깅에 프로세스 ID 추가
     const memoryInfo = {
       processInfo: {
         rss: `RSS (실제 사용 메모리): ${this.formatBytes(used.rss)}`,
@@ -31,11 +30,13 @@ export class MemoryMonitorService {
         arrayBuffers: `Array Buffers: ${this.formatBytes(used.arrayBuffers || 0)}`,
         pid: `PID: ${process.pid}`,
         uptime: `Uptime: ${process.uptime()}`,
+        platform: `Platform: ${process.platform}`, // 운영체제 정보 추가
       },
       systemMemory: {
         totalMemory: `총 메모리: ${this.formatBytes(totalMemory)}`,
         availableMemory: `사용 가능한 메모리: ${this.formatBytes(freeMemory)}`,
-        nodeProcessUsage: `Node 프로세스 메모리 사용률: ${systemMemoryUsagePercent.toFixed(2) + '%'}`,
+        systemMemoryUsage: `시스템 메모리 사용률: ${systemMemoryUsagePercent.toFixed(2)}%`,
+        nodeProcessUsage: `Node 프로세스 메모리 사용률: ${processMemoryUsagePercent.toFixed(2)}%`,
       },
     };
 
