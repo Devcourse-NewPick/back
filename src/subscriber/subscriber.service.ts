@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service'; // MysqlPrismaService 사용
 
 @Injectable()
 export class SubscriberService {
-  constructor(private readonly prisma: MysqlPrismaService) {}
+  constructor(
+    private readonly logger: Logger,
+    private readonly prisma: MysqlPrismaService
+  ) {}
 
   /**
    * 구독 시작
@@ -122,5 +125,25 @@ export class SubscriberService {
       where: { userId },
       orderBy: { startedAt: 'desc' },
     });
+  }
+
+  /**
+   * 구독자 목록 조회
+   */
+  async getSubscribers() {
+    const recievers = await this.prisma.subscriber.findMany({
+      include: {
+        user: true,
+      },
+      where: {
+        endAt: null,
+      },
+    });
+
+    this.logger.debug(
+      `수신자 목록을 가져왔습니다. 수신자 수: ${recievers.length}`,
+    );
+    
+    return recievers.map((reciever) => reciever.user.email);
   }
 }
