@@ -1,14 +1,14 @@
 import { Controller, Post, Get, Body } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
-import { GetRecieverService } from './getReciever.service';
 import { Logger } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
+import { SubscriberService } from 'src/subscriber/subscriber.service';
 
 @Controller('scheduler')
 export class SchedulerController {
   constructor(
     private readonly schedulerService: SchedulerService,
-    private readonly getRecieverService: GetRecieverService,
+    private readonly subscriberService : SubscriberService,
     private readonly logger: Logger,
     private readonly mailService: MailService,
   ) {}
@@ -46,7 +46,7 @@ export class SchedulerController {
 
   @Get('get-recievers') // 테스트용
   async getRecievers() {
-    const recievers = await this.getRecieverService.getReciever();
+    const recievers = await this.subscriberService.getSubscribers();
     this.logger.log(`구독자 목록을 가져왔습니다.${recievers}`);
     const mail = await this.mailService.sendBulkMail(6, recievers);
     return { recievers, mail };
