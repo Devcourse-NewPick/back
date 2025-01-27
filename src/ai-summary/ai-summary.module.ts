@@ -10,10 +10,7 @@ import { Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { HTMLFormatterService } from './parseHtml.service';
 @Module({
-  imports: [
-    PrismaModule,
-    forwardRef(() => CrawlingModule),
-  ],
+  imports: [PrismaModule, forwardRef(() => CrawlingModule)],
   controllers: [AiSummaryController],
   providers: [
     {
