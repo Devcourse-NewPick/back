@@ -1,24 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { MailService } from 'src/mail/mail.service';
+import { OpenAiService } from 'src/ai-summary/openai.service';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
-import { MailService } from 'src/mail/mail.service';
-import { GetRecieverService } from './getReciever.service';
-import { OpenAiService } from 'src/ai-summary/openai.service';
+import { SubscriberService } from 'src/subscriber/subscriber.service';
 import dayjs from 'dayjs';
 @Injectable()
 export class SchedulerService {
-  private isCrawlingEnabled = true;
-  private isAiSummaryEnabled = true;
+  private isCrawlingEnabled = false;
+  private isAiSummaryEnabled = false;
   constructor(
-    private readonly crawlingService: CrawlingService,
-    private readonly crawlingRepository: CrawlingRepository,
+    private readonly logger: Logger,
     private readonly mailService: MailService,
-    private readonly getRecieverService: GetRecieverService,
     private readonly openAiService: OpenAiService,
-    private readonly schedulerRegistry: SchedulerRegistry,
+    private readonly crawlingService: CrawlingService,
+    private readonly subscriberService: SubscriberService,
+    private readonly crawlingRepository: CrawlingRepository,
   ) {}
-  private readonly logger = new Logger(SchedulerService.name);
 
   @Cron(CronExpression.EVERY_DAY_AT_7AM)
   async startCrawling() {
@@ -45,7 +44,7 @@ export class SchedulerService {
       endDate,
     );
     const newsletter = await this.openAiService.summarizeText(news.news);
-    const subscribersEmail = await this.getRecieverService.getReciever();
+    const subscribersEmail = await this.subscriberService.getSubscribers();
     const result = await this.mailService.sendBulkMail(
       newsletter.newsletter.id,
       subscribersEmail,
@@ -57,17 +56,13 @@ export class SchedulerService {
   }
 
   toggleCrawlingScheduler(enable: boolean) {
-    this.isCrawlingEnabled = enable;
-    this.logger.log(
-      `크롤링 스케줄러가 ${enable ? '활성화' : '비활성화'} 되었습니다.`,
-    );
+    this.isCrawlingEnabled = Boolean(enable);
+    this.logger.debug(this.isCrawlingEnabled ? '활성화' : '비활성화');
   }
 
   toggleAiSummaryScheduler(enable: boolean) {
     this.isAiSummaryEnabled = enable;
-    this.logger.log(
-      `뉴스레터 스케줄러가 ${enable ? '활성화' : '비활성화'} 되었습니다.`,
-    );
+    this.logger.debug(this.isAiSummaryEnabled ? '활성화' : '비활성화');
   }
 
   getSchedulerStatus() {
@@ -75,5 +70,13 @@ export class SchedulerService {
       crawling: this.isCrawlingEnabled,
       aiSummary: this.isAiSummaryEnabled,
     };
+  }
+
+  getIsCrawlingEnabled(): boolean {
+    return this.isCrawlingEnabled;
+  }
+
+  getIsAiSummaryEnabled(): boolean {
+    return this.isAiSummaryEnabled;
   }
 }
