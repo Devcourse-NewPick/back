@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UtilService } from './util.service';
 import { CrawlerService } from './crawler.service';
 import { CrawlingRepository } from './crawling.repository';
+import { CrawledNews } from './schema/crawling.schema';
+import { FindCategoryService } from 'src/ai-summary/findCategory.service';
 
 import * as puppeteer from 'puppeteer';
-
 @Injectable()
 export class CrawlingService {
   constructor(
-    private readonly utilService: UtilService,
     private readonly crawlerService: CrawlerService,
     private readonly crawlingRepository: CrawlingRepository,
+    private readonly findCategoryService: FindCategoryService,
   ) {}
   
   private readonly logger = new Logger(CrawlingService.name);
@@ -27,10 +27,27 @@ export class CrawlingService {
   async crawling() {
     const crawledData = await this.crawlingNews();
     if (crawledData.length) {
-      const saveCrawledData = await this.crawlingRepository.createCrawledNews(crawledData);
-      this.logger.log(`Successfully processed ${saveCrawledData.length} items`);
+      // 카테고리 분류
+      const checkNewsCategory: CrawledNews[] = await this.crawlerService.setQueue(
+        crawledData.map((data: CrawledNews) => async () => {
+          if (!data.category.length) {
+            const setCategory = await this.findCategoryService.findCategory(data.content);
+            this.logger.log(setCategory);
+            return {
+              ...data,
+              category: [...data.category, setCategory.categoryName],
+            }
+          } else {
+            return data;
+          }
+        })
+      );
+      const createdData = await this.crawlingRepository.createCrawledNews(checkNewsCategory);
+      this.logger.log(`Successfully created ${createdData.length} items`);
+      return createdData;
     }
   }
+
   async crawlingNews(): Promise<any> {
     const crawlingResultData = [];
     // 브라우저 초기화
@@ -41,7 +58,7 @@ export class CrawlingService {
         const page = await this.crawlerService.initPage(browser);
         // 페이지 이동
         await page.goto(link, { waitUntil: 'networkidle2', timeout: 30000 });
-        await this.utilService.setDelay();
+        await this.crawlerService.setDelay();
         // 페이지 크롤링
         const crawlingNews = await page.evaluate(() => {
           const newsList = document.querySelectorAll('.sa_item._SECTION_HEADLINE .sa_text_title');
@@ -53,7 +70,7 @@ export class CrawlingService {
         });
         await page.close();
         // 상세 페이지 크롤링
-        const crawlingNewsDetail = await this.utilService.setQueue(
+        const crawlingNewsDetail = await this.crawlerService.setQueue(
           crawlingNews.map((news) => async () => this.crawlingNewsDetail(browser, news))
         );
         // 크롤링 최종 결과 배열에 저장
@@ -76,7 +93,7 @@ export class CrawlingService {
       await page.goto(news.link, { waitUntil: 'networkidle2', timeout: 30000 });
       // 다운 스크롤
       await page.evaluate(() => { window.scrollTo(0, document.body.scrollHeight) });
-      await this.utilService.setDelay();
+      await this.crawlerService.setDelay();
       // 페이지 크롤링
       const crawlingNews = await page.evaluate(() => {
         const source = document.querySelector('.media_end_head_top_logo_img')?.getAttribute('title') || null;

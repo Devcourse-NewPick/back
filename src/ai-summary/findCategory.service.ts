@@ -51,7 +51,10 @@ export class FindCategoryService {
 
       this.logger.debug(`카테고리 찾기 완료: ${categoryName}`);
 
-      return categoryId;
+      return {
+        categoryId: categoryId, 
+        categoryName: categoryName,
+      };
     } catch (error) {
       this.logger.error(`카테고리 찾기 실패: ${error.message}`);
       await this.prisma.aiProcessLog.create({

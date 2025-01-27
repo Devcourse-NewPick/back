@@ -6,17 +6,6 @@ import { CreateNewsletterService } from './createNewsletter.service';
 import { CreateTitleService } from './createTitle.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 import { HTMLFormatterService } from './parseHtml.service';
-// export interface News {
-//   _id?: string;
-//   title: string;
-//   content: string;
-//   source: string;
-//   countryCode: string;
-//   publishedAt: Date;
-//   categoryName: string[];
-//   img: string;
-// }
-
 @Injectable()
 export class OpenAiService {
   private readonly logger = new Logger(OpenAiService.name);
@@ -76,7 +65,7 @@ export class OpenAiService {
         },
       });
 
-      const categoryId = await this.findCategoryService.findCategory(summary);
+      const categoryId = (await this.findCategoryService.findCategory(summary)).categoryId;
       const title = await this.createTitleService.createTitle(summary);
       const html = await this.htmlFormatterService.formatHtml(summary);
 
