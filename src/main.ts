@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './App.module';
+import './instruments';
 
 async function bootstrap() {
   // Nest 앱 생성
@@ -10,7 +11,10 @@ async function bootstrap() {
   const configService: ConfigService = app.get(ConfigService);
 
   // 환경 변수 및 기본값 설정
-  const frontendUrl: string = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
+  const frontendUrl: string = configService.get<string>(
+    'FRONTEND_URL',
+    'http://localhost:3000',
+  );
   const port: number = configService.get<number>('PORT', 3001);
 
   // CORS 설정
@@ -25,7 +29,10 @@ async function bootstrap() {
   app.use((req, res, next) => {
     if (req.method === 'OPTIONS') {
       res.header('Access-Control-Allow-Origin', frontendUrl);
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header(
+        'Access-Control-Allow-Methods',
+        'GET, POST, PUT, DELETE, OPTIONS',
+      );
       res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       res.header('Access-Control-Allow-Credentials', 'true');
       return res.sendStatus(204);

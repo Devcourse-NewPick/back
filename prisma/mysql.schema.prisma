@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:root@localhost:3308/newpick"
+  url      = env("MYSQL_URL")
 }
 
 // User 모델
