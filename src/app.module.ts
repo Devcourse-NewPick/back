@@ -18,6 +18,11 @@ import { MailModule } from './mail/mail.module'; // 메일 모듈
 import { OpenAiService } from './ai-summary/openai.service'; // OpenAI 서비스
 import { MailService } from './mail/mail.service'; // 메일 서비스
 import { CategoryModule } from './category/category.module'; // 카테고리 모듈
+import { SentryModule } from '@sentry/nestjs/setup';
+import { APP_FILTER } from '@nestjs/core';
+import { SentryGlobalFilter } from '@sentry/nestjs/setup';
+import { ScheduleModule } from '@nestjs/schedule';
+import { MemoryMonitorService } from './monitoring/memory.monitor';
 
 @Module({
   imports: [
@@ -39,8 +44,19 @@ import { CategoryModule } from './category/category.module'; // 카테고리 모
     UserModule, // 유저 모듈
     MailModule, // 메일 모듈
     CategoryModule, // 카테고리 모듈
+    SentryModule.forRoot(),
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController], // 컨트롤러 등록
-  providers: [AppService, OpenAiService, MailService], // 서비스 등록
+  providers: [
+    AppService,
+    OpenAiService,
+    MailService,
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
+    MemoryMonitorService,
+  ], // 서비스 등록
 })
 export class AppModule {}

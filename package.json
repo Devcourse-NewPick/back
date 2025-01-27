@@ -48,6 +48,8 @@
     "@nestjs/schedule": "^4.1.2",
     "@prisma/client": "^6.2.0",
     "@redis/client": "^1.6.0",
+    "@sentry/nestjs": "^8.51.0",
+    "@sentry/profiling-node": "^8.51.0",
     "@types/passport-google-oauth20": "^2.0.16",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
