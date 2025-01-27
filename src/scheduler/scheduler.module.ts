@@ -7,6 +7,8 @@ import { MailService } from 'src/mail/mail.service';
 import { CrawlingModule } from 'src/crawling/crawling.module';
 import { AiSummaryModule } from 'src/ai-summary/ai-summary.module';
 import { SubscriberModule } from 'src/subscriber/subscriber.module';
+import { CategoryModule } from 'src/category/category.module';
+import { BasicRepositoryModule } from 'src/repository/module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { SubscriberModule } from 'src/subscriber/subscriber.module';
     AiSummaryModule,
     SubscriberModule,
     ScheduleModule.forRoot(),
+    CategoryModule,
+    BasicRepositoryModule,
   ],
   providers: [SchedulerService, MailService],
   controllers: [SchedulerController],

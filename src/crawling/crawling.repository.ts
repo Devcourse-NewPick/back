@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { CrawledNews } from './schema/crawling.schema';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { CategoryRepository } from 'src/category/category.repository';
 
 dayjs.extend(utc);
 
@@ -12,6 +13,7 @@ export class CrawlingRepository {
   constructor(
     @InjectModel(CrawledNews.name)
     private readonly crawledNews: Model<CrawledNews>,
+    private readonly categoryRepository: CategoryRepository,
   ) {}
 
   private readonly logger = new Logger(CrawlingRepository.name);
@@ -45,14 +47,16 @@ export class CrawlingRepository {
   async getCrawledNews(
     dateStart: string,
     dateEnd: string,
+    categoryId: number,
   ): Promise<{ news: CrawledNews[]; dateStart: string; dateEnd: string }> {
     const startDate = dayjs(dateStart).startOf('day').utc(true).toDate();
     const endDate = dayjs(dateEnd).endOf('day').utc(true).toDate();
-
+    const categoryName = await this.categoryRepository.findById(categoryId);
     // 디버깅을 위한 로그 추가
     this.logger.debug('DB 검색 범위:', {
       startDate,
       endDate,
+      categoryName,
     });
     try {
       const news = await this.crawledNews
@@ -61,6 +65,7 @@ export class CrawlingRepository {
             $gte: startDate,
             $lte: endDate,
           },
+          category: categoryName.name,
         })
         .sort({ createdAt: -1 })
         .lean()
@@ -88,5 +93,9 @@ export class CrawlingRepository {
       this.logger.error(`Failed to delete data: ${error.message}`);
       throw error;
     }
+  }
+  // 카테고리별 크롤링 데이터 조회
+  async getCrawledNewsByCategory(category: string): Promise<CrawledNews[]> {
+    return await this.crawledNews.find({ category: category }).exec();
   }
 }

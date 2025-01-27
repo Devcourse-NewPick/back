@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import { NODEMAILER } from './constants';
 import { JSDOM } from 'jsdom';
+import { Newsletter } from '@prisma/client';
 @Injectable()
 export class MailService {
   private transporter: nodemailer.Transporter;
@@ -60,17 +61,19 @@ export class MailService {
     });
   }
 
-  async sendBulkMail(newsletterId: number, emails: string[]) {
+  async sendBulkMail(
+    newsletterId: number,
+    emails: string[],
+    isMultipleNewsletter?: boolean,
+    newsletterArray?: Newsletter[],
+    formattedSummary?: string,
+  ) {
     try {
       const newsletter = await this.prisma.newsletter.findUnique({
         where: { id: newsletterId },
       });
       if (!newsletter) {
         throw new Error('Newsletter not found');
-        return {
-          success: false,
-          message: 'Newsletter not found',
-        };
       }
       const originalNewsLink: Array<string> = newsletter.usedNews.split(',');
 

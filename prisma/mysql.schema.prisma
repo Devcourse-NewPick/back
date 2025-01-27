@@ -14,7 +14,7 @@ model User {
   password                String
   username                String?
   profileImg              String?
-  interests               Json?
+  interests               String[]?
   timezone                String              @default("UTC")
   frequency               String              @default("weekly") // 발송 주기
   role                    String              @default("user")

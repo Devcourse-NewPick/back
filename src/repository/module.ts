@@ -20,6 +20,11 @@ import { EmailArchivesController } from './controllers/emailArchieve.controller'
     AiProcessingLogController,
     EmailArchivesController,
   ],
-  exports: [],
+  exports: [
+    NewsletterRepo,
+    MysqlPrismaService,
+    AiProcessingLogRepo,
+    EmailArchivesRepo,
+  ],
 })
 export class BasicRepositoryModule {}

@@ -6,6 +6,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { FindCategoryService } from './findCategory.service';
 import { CreateNewsletterService } from './createNewsletter.service';
 import { CreateTitleService } from './createTitle.service';
+import { BasicSummarizeService } from './basicSummarize.service';
 import { Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { HTMLFormatterService } from './parseHtml.service';
@@ -25,6 +26,7 @@ import { HTMLFormatterService } from './parseHtml.service';
     CreateNewsletterService,
     CreateTitleService,
     HTMLFormatterService,
+    BasicSummarizeService,
   ],
   exports: [
     OpenAiService,
@@ -32,6 +34,7 @@ import { HTMLFormatterService } from './parseHtml.service';
     CreateNewsletterService,
     CreateTitleService,
     HTMLFormatterService,
+    BasicSummarizeService,
     OpenAI,
     Logger,
   ],
