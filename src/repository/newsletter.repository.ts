@@ -1,6 +1,6 @@
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Newsletter } from '@prisma/client';
 
 @Injectable()
 export class NewsletterRepo {
@@ -22,6 +22,19 @@ export class NewsletterRepo {
   async getNewsletterByCategoryId(categoryId: number) {
     return this.prisma.newsletter.findMany({
       where: { categoryId },
+    });
+  }
+
+  async getNewsletterByCategoryIdAndDate(
+    categoryId: number,
+    dateStart: Date,
+    dateEnd: Date,
+  ): Promise<Newsletter[]> {
+    return this.prisma.newsletter.findMany({
+      where: {
+        categoryId,
+        createdAt: { gte: dateStart, lte: dateEnd },
+      },
     });
   }
   async deleteNewsletter(id: number) {

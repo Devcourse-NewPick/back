@@ -16,7 +16,7 @@ export class HTMLFormatterService {
           {
             role: 'system',
             content:
-              'You are an expert html formatter. Format the following summarized article and return the content as a readable, visial html',
+              'You are an expert html formatter. Format the following summarized article and return the content as a readable, visial html the language is Korean',
           },
           {
             role: 'user',

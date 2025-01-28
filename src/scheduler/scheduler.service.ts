@@ -64,14 +64,18 @@ export class SchedulerService {
     }
     this.logger.log(`생성 뉴스 수 : ${categoryList.length}`);
   }
-
+  // 주간 요약 뉴스 발송
   @Cron(CronExpression.EVERY_MONDAY_AT_8AM)
   async sendAiSummary() {
     const subscribersEmail = await this.subscriberService.getSubscribers();
     const categoryList = await this.categoryRepository.findAll();
     for (const category of categoryList) {
       const newsletters =
-        await this.newsletterRepository.getNewsletterByCategoryId(category.id);
+        await this.newsletterRepository.getNewsletterByCategoryIdAndDate(
+          category.id,
+          dayjs().subtract(7, 'day').toDate(),
+          dayjs().toDate(),
+        );
       const summary = await this.basicSummarizeService.basicSummarize(
         newsletters.map((item) => item.content).join('\n\n'),
         500,
@@ -80,10 +84,8 @@ export class SchedulerService {
       const formattedSummary = await this.htmlFormatterService.formatHtml(
         summary.choices[0].message.content,
       );
-      const result = await this.mailService.sendBulkMail(
-        newsletters[0].id,
+      const result = await this.mailService.sendBulkMailWithMultipleNewsletter(
         subscribersEmail,
-        true,
         newsletters,
         formattedSummary,
       );
