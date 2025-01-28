@@ -13,11 +13,22 @@ export class CrawlingController {
   // async crawling() {
   //   return await this.crawlingService.crawling();
   // }
-  // 크롤링 데이터 
+  // 크롤링 데이터
   @Get()
   async crawlingDetail() {
     const news = await this.crawlingRepository.getLatestCrawledNews();
     const oldNews = await this.crawlingRepository.getOldestCrawledNews();
     return { news: news.createdAt, oldNews: oldNews.createdAt };
   }
+  // <<<<<<< HEAD
+  //   async getCrawledNews() {
+  //     return await this.crawlingRepository.getLatestCrawledNews();
+  //   }
+
+  //   @Get('crawling')
+  //   async crawling() {
+  //     return this.crawlingService.crawling();
+  //   }
+
+  //   @Get('crawling-detail')
 }

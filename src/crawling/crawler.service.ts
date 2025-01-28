@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import PQueue from '@esm2cjs/p-queue';
 
@@ -14,7 +14,7 @@ export class CrawlerService {
   // 지연 시간 설정
   async setDelay(min: number = 1000, max: number = 3000) {
     const randomTime = Math.floor(Math.random() * (max - min + 1)) + min;
-    return new Promise(resolve => setTimeout(resolve, randomTime));
+    return new Promise((resolve) => setTimeout(resolve, randomTime));
   }
   // 크롤링 모듈 선언 및 초기화
   private browser: puppeteer.Browser;
@@ -43,11 +43,12 @@ export class CrawlerService {
       'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     ];
-    const randomAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+    const randomAgent =
+      userAgents[Math.floor(Math.random() * userAgents.length)];
     await page.setUserAgent(randomAgent);
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'ko-KR,ko;q=0.9',
-      'Referer': 'https://news.naver.com',
+      Referer: 'https://news.naver.com',
     });
     this.logger.debug(`Page initialize with User-Agent: ${randomAgent}`);
     return page;

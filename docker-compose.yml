@@ -24,6 +24,23 @@ services:
     networks:
       - mysql_network
 
+  app:
+    build:
+      context: .
+    container_name: newpick-app
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001 
+      - DATABASE_URL=mysql://root:root@newpick-mysql:3306/newpick
+    volumes:
+      - .:/app
+    depends_on:
+      - mysql
+    networks:
+      - app_network
+
+
 volumes:
   mysql_data:
 
