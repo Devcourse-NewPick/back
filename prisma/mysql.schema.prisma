@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:root@localhost:3308/newpick"
+  url      = env("MYSQL_URL")
 }
 
 // User 모델
@@ -64,6 +64,7 @@ model Newsletter {
   title      String
   content    String         @db.Text
   contentAsHTML String? @db.Text
+  imageUrl String?
   categoryId Int
   viewcount  Int           @default(0)
   usedNews   String         @db.Text

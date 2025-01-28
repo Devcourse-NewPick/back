@@ -1,11 +1,16 @@
-import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  Logger,
+} from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service'; // MysqlPrismaService 사용
 
 @Injectable()
 export class SubscriberService {
   constructor(
     private readonly logger: Logger,
-    private readonly prisma: MysqlPrismaService
+    private readonly prisma: MysqlPrismaService,
   ) {}
 
   /**
@@ -56,7 +61,9 @@ export class SubscriberService {
     });
 
     if (!subscription) {
-      throw new NotFoundException('No active subscription found for this user.');
+      throw new NotFoundException(
+        'No active subscription found for this user.',
+      );
     }
 
     return this.prisma.subscriber.update({
@@ -105,7 +112,10 @@ export class SubscriberService {
       return { active: false, status: 'none' };
     }
 
-    return { active: subscription.status === 'active', status: subscription.status };
+    return {
+      active: subscription.status === 'active',
+      status: subscription.status,
+    };
   }
 
   /**
@@ -143,7 +153,7 @@ export class SubscriberService {
     this.logger.debug(
       `수신자 목록을 가져왔습니다. 수신자 수: ${recievers.length}`,
     );
-    
+
     return recievers.map((reciever) => reciever.user.email);
   }
 }

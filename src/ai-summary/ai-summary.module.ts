@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { OpenAiService } from './openai.service';
 import { AiSummaryController } from './ai-summary.controller';
 import { CrawlingModule } from '../crawling/crawling.module';
@@ -10,7 +10,10 @@ import { Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { HTMLFormatterService } from './parseHtml.service';
 @Module({
-  imports: [CrawlingModule, PrismaModule],
+  imports: [
+    PrismaModule,
+    forwardRef(() => CrawlingModule),
+  ],
   controllers: [AiSummaryController],
   providers: [
     {
