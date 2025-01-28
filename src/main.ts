@@ -13,14 +13,14 @@ async function bootstrap() {
   // 환경 변수 및 기본값 설정
   const frontendUrl: string = configService.get<string>(
     'FRONTEND_URL',
-    'http://localhost:3000',
+    // 'http://localhost:3000',
   );
   const port: number = configService.get<number>('PORT', 3001);
 
   // CORS 설정
   app.enableCors({
     origin: frontendUrl,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
@@ -31,7 +31,7 @@ async function bootstrap() {
       res.header('Access-Control-Allow-Origin', frontendUrl);
       res.header(
         'Access-Control-Allow-Methods',
-        'GET, POST, PUT, DELETE, OPTIONS',
+        'GET, POST, PUT, DELETE, PATCH, OPTIONS',
       );
       res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       res.header('Access-Control-Allow-Credentials', 'true');
@@ -42,8 +42,8 @@ async function bootstrap() {
 
   // 서버 실행
   try {
-    await app.listen(port);
-    console.log(`Server is running on http://localhost:${port}`);
+    await app.listen(port, '0.0.0.0'); // 0.0.0.0으로 외부 네트워크 수신 허용
+    console.log(`서버 작동 on http://0.0.0.0:${port}`);
   } catch (error) {
     console.error('Error starting server:', error);
   }
