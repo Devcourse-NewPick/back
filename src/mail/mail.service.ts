@@ -4,8 +4,10 @@ import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import { NODEMAILER } from './constants';
 import { JSDOM } from 'jsdom';
-import { Newsletter } from '@prisma/client';
+import { Newsletter, NewsCategory } from '@prisma/client';
 import { formatNewsletterContent } from '../common/utils/html-formatter.util';
+import { newsletterTemplate } from './htmlTemplate';
+import { HTMLFormatterService } from 'src/ai-summary/parseHtml.service';
 @Injectable()
 export class MailService {
   private transporter: nodemailer.Transporter;
@@ -13,6 +15,7 @@ export class MailService {
   constructor(
     private readonly logger: Logger,
     private readonly prisma: MysqlPrismaService,
+    private readonly htmlFormatterService: HTMLFormatterService,
     @Inject(NODEMAILER) private readonly config: any,
   ) {
     this.logger.log('MailService 초기화 완료');
@@ -62,130 +65,50 @@ export class MailService {
     });
   }
   async sendBulkMailWithMultipleNewsletter(
-    emails: string[],
+    subscribers: { email: string; interests: NewsCategory[] }[],
     newsletterArray: Newsletter[],
-    formattedSummaryAsHTML: string,
+    basicIntroductionAsHTML: string,
   ) {
     try {
-      const newsletterFormattedAsHTML = await Promise.all(
-        newsletterArray.map((newsletter) => {
-          const truncatedContent =
-            newsletter.content.length > 100
-              ? newsletter.content.substring(0, 100) + '...'
-              : newsletter.content;
-
-          return `
-            <a href="${process.env.FRONTEND_URL}/newsletters/${newsletter.id}" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              role="link" 
-              style="
-                display: flex !important; 
-                color: inherit !important;
-                text-decoration: none !important;
-                max-width: 600px !important;
-                margin: 0 auto !important;
-                border: 1px solid rgba(55, 53, 47, 0.16) !important;
-                border-radius: 4px !important;
-                transition: background 0.2s ease-in !important;
-                min-height: 124px !important;
-                flex-direction: row !important;
-                align-items: stretch !important;
-                text-align: left !important;
-                margin-bottom: 12px !important;
-              "
-            >
-              <div style="
-                width: 100% !important;
-                padding: 16px !important;
-                overflow: hidden !important;
-                flex-shrink: 0 !important;
-                display: block !important;
-              ">
-                <div style="
-                  font-size: 18px;
-                  font-weight: 600;
-                  margin-bottom: 8px;
-                  color: rgb(55, 53, 47);
-                ">${newsletter.title}</div>
-                
-                ${
-                  newsletter.imageUrl
-                    ? `
-                <div style="
-                  width: 100%;
-                  height: 200px;
-                  margin-bottom: 8px;
-                  overflow: hidden;
-                  position: relative;
-                  border-radius: 4px;
-                ">
-                  <img src="${newsletter.imageUrl}" 
-                    style="
-                      width: 100%;
-                      height: 200px;
-                      object-fit: cover;
-                      object-position: center;
-                    "
-                    alt="${newsletter.title}"
-                  />
-                </div>
-                `
-                    : ''
-                }
-                
-                <div style="
-                  font-size: 14px;
-                  line-height: 1.5;
-                  color: rgba(55, 53, 47, 0.85);
-                  margin-bottom: 8px;
-                ">${truncatedContent}</div>
-                
-                <div style="
-                  font-size: 13px;
-                  color: rgba(55, 53, 47, 0.5);
-                ">
-                  카테고리 ID: ${newsletter.categoryId} • 
-                  조회수: ${newsletter.viewcount} • 
-                  작성일: ${new Date(newsletter.createdAt).toLocaleDateString('ko-KR')}
-                </div>
-              </div>
-            </a>
-          `;
-        }),
-      );
-
-      const formattedContentAsHTML = formatNewsletterContent(
-        newsletterFormattedAsHTML.join(''),
-      );
-
       const results = await Promise.all(
-        emails.map(async (email) => {
+        subscribers.map(async (subscriber) => {
+          const filteredNewsletter = newsletterArray.filter((newsletter) =>
+            subscriber.interests.some(
+              (interest) => interest.id === newsletter.categoryId,
+            ),
+          );
+          const newsletterWithTemplate = filteredNewsletter.map((newsletter) =>
+            newsletterTemplate(newsletter),
+          );
+
           try {
             await this.transporter.sendMail({
               from: 'newpick.offical@gmail.com',
-              to: email,
+              to: subscriber.email,
               cc: '',
-              subject: newsletterArray[0].title,
-              html: formattedSummaryAsHTML + formattedContentAsHTML,
+              subject: filteredNewsletter[0].title,
+              html: basicIntroductionAsHTML + newsletterWithTemplate.join(''),
             });
 
             await this.prisma.emailArchive.create({
               data: {
                 newsletterId: newsletterArray[0].id,
                 sentAt: new Date(),
-                email: email,
+                email: subscriber.email,
               },
             });
 
             return {
-              email: email,
+              email: subscriber.email,
               success: true,
             };
           } catch (error) {
-            this.logger.error(`Failed to send email to ${email}:`, error);
+            this.logger.error(
+              `Failed to send email to ${subscriber.email}:`,
+              error,
+            );
             return {
-              email: email,
+              email: subscriber.email,
               success: false,
               error: error.message,
             };

@@ -8,7 +8,6 @@ import { SubscriberService } from 'src/subscriber/subscriber.service';
 import dayjs from 'dayjs';
 import { CategoryRepository } from 'src/category/category.repository';
 import { CronExpression } from 'src/common/constants';
-import { BasicSummarizeService } from 'src/ai-summary/basicSummarize.service';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
 import { HTMLFormatterService } from 'src/ai-summary/parseHtml.service';
 @Injectable()
@@ -23,7 +22,6 @@ export class SchedulerService {
     private readonly subscriberService: SubscriberService,
     private readonly crawlingRepository: CrawlingRepository,
     private readonly categoryRepository: CategoryRepository,
-    private readonly basicSummarizeService: BasicSummarizeService,
     private readonly newsletterRepository: NewsletterRepo,
     private readonly htmlFormatterService: HTMLFormatterService,
   ) {}
@@ -67,7 +65,7 @@ export class SchedulerService {
   // 주간 요약 뉴스 발송
   @Cron(CronExpression.EVERY_MONDAY_AT_8AM)
   async sendAiSummary() {
-    const subscribersEmail = await this.subscriberService.getSubscribers();
+    const subscribers = await this.subscriberService.getSubscribers();
     const categoryList = await this.categoryRepository.findAll();
     for (const category of categoryList) {
       const newsletters =
@@ -76,18 +74,14 @@ export class SchedulerService {
           dayjs().subtract(7, 'day').toDate(),
           dayjs().toDate(),
         );
-      const summary = await this.basicSummarizeService.basicSummarize(
-        newsletters.map((item) => item.content).join('\n\n'),
-        500,
-        1000,
-      );
-      const formattedSummary = await this.htmlFormatterService.formatHtml(
-        summary.choices[0].message.content,
-      );
+      const basicIntroduction = newsletters[0].content;
+      const basicIntroductionAsHTML =
+        await this.htmlFormatterService.formatHtml(basicIntroduction);
+
       const result = await this.mailService.sendBulkMailWithMultipleNewsletter(
-        subscribersEmail,
+        subscribers,
         newsletters,
-        formattedSummary,
+        basicIntroductionAsHTML,
       );
       this.logger.log(`발송 결과 ${result.message}`);
     }
