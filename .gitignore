@@ -1,4 +1,6 @@
 /mongodb/*.key
+.my.cnf
+backup.sql
 
 # Prisma
 /prisma/generated
