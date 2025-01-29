@@ -47,7 +47,7 @@ jobs:
             npm run build
 
             # systemd 서비스 재시작 (systemd로 Node.js 서비스 관리)
-            sudo systemctl restart nestjs || sudo systemctl start nestjs
+            sudo systemctl restart nestjs.service || sudo systemctl start nestjs.service
 
             echo "🚀 배포 성공 !!!"
           EOF
