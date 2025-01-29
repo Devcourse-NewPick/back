@@ -28,7 +28,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          script_stop: true
           command_timeout: "20m"
           script: |
             echo "🔄 Updating code..."
@@ -39,22 +38,28 @@ jobs:
             }
             git pull origin main
             echo "✅ Code update complete"
-      # 의존성 설치 및 프로젝트 빌드
-      - name: Install and Build
+      # 의존성 설치
+      - name: Install Dependencies
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          script_stop: true
-          command_timeout: "20m"
+          command_timeout: "10m"
           script: |
-            echo "📦 Installing dependencies..."
             cd ~/back
             npm ci --quiet
-            echo "🛠 Building project..."
+      # 프로젝트 빌드
+      - name: Build Project
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          command_timeout: "10m"
+          script: |
+            cd ~/back
             npm run build
-            echo "✅ Build complete"
       # 서비스 재시작
       - name: Restart Service
         uses: appleboy/ssh-action@master
@@ -62,7 +67,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          script_stop: true
           command_timeout: "10m"
           script: |
             echo "🔄 Restarting service..."
@@ -79,7 +83,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          script_stop: true
           script: |
             if sudo systemctl is-active nestjs.service; then
               echo "🚀 Deployment successful! Service is running."
