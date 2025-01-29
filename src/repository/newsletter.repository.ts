@@ -25,6 +25,20 @@ export class NewsletterRepo {
     });
   }
 
+  async getPreviousNewsletter(newsletterId: number, dateStart: Date) {
+    return this.prisma.newsletter.findFirst({
+      where: { id: { lt: newsletterId }, createdAt: { lt: dateStart } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getNextNewsletter(newsletterId: number, dateStart: Date) {
+    return this.prisma.newsletter.findFirst({
+      where: { id: { gt: newsletterId }, createdAt: { gt: dateStart } },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
   async getNewsletterByCategoryIdAndDate(
     categoryId: number,
     dateStart: Date,

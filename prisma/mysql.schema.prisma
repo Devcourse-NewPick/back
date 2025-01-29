@@ -64,7 +64,7 @@ model Newsletter {
   title      String
   content    String         @db.LongText
   contentAsHTML String?     @db.LongText
-  imageUrl   String?        @db.Text
+  imageUrl   String?        @db.LongText
   categoryId Int
   viewcount  Int           @default(0)
   usedNews   String         @db.LongText

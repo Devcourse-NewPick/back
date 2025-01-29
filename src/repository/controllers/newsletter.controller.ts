@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { NewsletterRepo } from '../newsletter.repository';
-
+import { NotFoundException } from '@nestjs/common';
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
 export class BasicRepositoryController {
@@ -27,9 +27,25 @@ export class BasicRepositoryController {
   @Get(':id')
   async getNewsletterById(@Param('id') id: number) {
     id = Number(id);
+    const newsletter = await this.newsletterRepo.getNewsletterById(id);
+    if (!newsletter) {
+      throw new NotFoundException('Newsletter not found');
+    }
     return {
       message: '상세 조회 성공',
-      data: await this.newsletterRepo.getNewsletterById(id),
+      data: {
+        newsletter: newsletter,
+        previousNewsletter:
+          (await this.newsletterRepo.getPreviousNewsletter(
+            newsletter.id,
+            newsletter.createdAt,
+          )) || null,
+        nextNewsletter:
+          (await this.newsletterRepo.getNextNewsletter(
+            newsletter.id,
+            newsletter.createdAt,
+          )) || null,
+      },
     };
   }
 
