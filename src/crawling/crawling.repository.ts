@@ -18,6 +18,10 @@ export class CrawlingRepository {
 
   private readonly logger = new Logger(CrawlingRepository.name);
   // 크롤링 데이터 저장
+  async getAllNews(): Promise<CrawledNews[]> {
+    return await this.crawledNews.find().exec();
+  }
+
   async createCrawledNews(dataArray: CrawledNews[]): Promise<CrawledNews[]> {
     const news: CrawledNews[] = [];
     try {
@@ -97,5 +101,19 @@ export class CrawlingRepository {
   // 카테고리별 크롤링 데이터 조회
   async getCrawledNewsByCategory(category: string): Promise<CrawledNews[]> {
     return await this.crawledNews.find({ category: category }).exec();
+  }
+  // 카테고리별 크롤링 데이터 수 조회
+  async getNewsCountPerCategory() {
+    const news = await this.getAllNews();
+    const categories = await this.categoryRepository.findAll();
+    console.log(news.length, categories.length);
+
+    const newsCountPerCategory = {};
+    categories.map(async (category) => {
+      newsCountPerCategory[category.id] = news.filter((item) =>
+        item.category.includes(category.name),
+      ).length;
+    });
+    return newsCountPerCategory;
   }
 }

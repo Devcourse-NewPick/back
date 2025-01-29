@@ -1,14 +1,15 @@
 import * as Sentry from '@sentry/node';
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import * as os from 'os';
+import { CronExpression } from '../common/constants';
 @Injectable()
 export class MemoryMonitorService {
   private readonly logger = new Logger(MemoryMonitorService.name);
   private readonly MEMORY_THRESHOLDS = [50, 60, 70, 80, 90];
   private lastReportedThreshold = 0;
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async checkMemoryUsage() {
     const used = process.memoryUsage();
     const totalMemory = os.totalmem();

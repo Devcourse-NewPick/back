@@ -39,7 +39,6 @@ export class OpenAiService {
       news.map((item) => item.title).join('\n') +
       '\n' +
       news.map((item) => item.content).join('\n');
-    this.logger.debug(`요약 시작: ${news.length}개의 뉴스`);
     try {
       const response = await this.basicSummarizeService.basicSummarize(
         newsText,
@@ -51,7 +50,7 @@ export class OpenAiService {
       const token = response.usage?.total_tokens;
       const duration = (Date.now() - startTime) / 1000;
       const newslinks = news.map((item) => item.link).toString();
-      this.logger.debug(`요약 완료: ${summary}`);
+      this.logger.debug(`요약 완료: ${summary.length}자`);
 
       await this.prisma.aiProcessLog.create({
         data: {
@@ -74,6 +73,7 @@ export class OpenAiService {
         newslinks,
         categoryId,
         html,
+        news.map((item) => item.images).toString(),
       );
 
       return { summary, openai: response, categoryId, newsletter };

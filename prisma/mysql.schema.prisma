@@ -62,12 +62,12 @@ model OAuthToken {
 model Newsletter {
   id         Int            @id @default(autoincrement())
   title      String
-  content    String         @db.Text
-  contentAsHTML String? @db.Text
-  imageUrl String?
+  content    String         @db.LongText
+  contentAsHTML String?     @db.LongText
+  imageUrl   String?        @db.Text
   categoryId Int
   viewcount  Int           @default(0)
-  usedNews   String         @db.Text
+  usedNews   String         @db.LongText
   createdAt  DateTime       @default(now())
 
   category   NewsCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)

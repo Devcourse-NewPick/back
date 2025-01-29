@@ -38,7 +38,7 @@ export class SchedulerService {
     await this.crawlingService.crawling();
   }
   // ai 요약 스케줄러
-  @Cron(CronExpression.EVERY_DAY_AT_8PM)
+  @Cron(CronExpression.EVERY_DAY_AT_8AM)
   async makeAiSummary() {
     if (!this.isAiSummaryEnabled) {
       this.logger.log('ai 요약 스케줄러가 비활성화되었습니다.');
@@ -74,7 +74,7 @@ export class SchedulerService {
           dayjs().subtract(7, 'day').toDate(),
           dayjs().toDate(),
         );
-      const basicIntroduction = newsletters[0].content;
+      const basicIntroduction = newsletters[0].content; //일시적으로 첫번째 뉴스를 기준으로 함
       const basicIntroductionAsHTML =
         await this.htmlFormatterService.formatHtml(basicIntroduction);
 

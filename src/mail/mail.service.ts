@@ -67,8 +67,16 @@ export class MailService {
   async sendBulkMailWithMultipleNewsletter(
     subscribers: { email: string; interests: NewsCategory[] }[],
     newsletterArray: Newsletter[],
-    basicIntroductionAsHTML: string,
+    basicIntroductionAsHTML?: string,
   ) {
+    if (newsletterArray.length === 0) {
+      this.logger.error('No newsletter found');
+      throw new Error('No newsletter found');
+    }
+    if (subscribers.length === 0) {
+      this.logger.error('No subscribers found');
+      throw new Error('No subscribers found');
+    }
     try {
       const results = await Promise.all(
         subscribers.map(async (subscriber) => {

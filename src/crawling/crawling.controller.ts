@@ -21,9 +21,15 @@ export class CrawlingController {
   async crawlingDetail() {
     const news = await this.crawlingRepository.getLatestCrawledNews();
     const oldNews = await this.crawlingRepository.getOldestCrawledNews();
+    const newsCountperCategory =
+      await this.crawlingRepository.getNewsCountPerCategory();
     return {
       message: '크롤링 데이터 조회 성공',
-      data: { news: news.createdAt, oldNews: oldNews.createdAt },
+      data: {
+        news: news.createdAt,
+        oldNews: oldNews.createdAt,
+        newsCountperCategory,
+      },
     };
   }
 
