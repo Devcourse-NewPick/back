@@ -46,8 +46,8 @@ jobs:
             npm install
             npm run build
 
-            # PM2 재시작 (백그라운드 실행)
-            pm2 restart all || pm2 start dist/main.js --name "backend"
+            # systemd 서비스 재시작 (systemd로 Node.js 서비스 관리)
+            sudo systemctl restart nestjs || sudo systemctl start nestjs
 
             echo "🚀 배포 성공 !!!"
           EOF
