@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
+import { Newsletter } from '@prisma/client';
 
 @Injectable()
 export class CreateNewsletterService {
@@ -13,17 +14,19 @@ export class CreateNewsletterService {
     summary: string,
     usedNews: string,
     categoryId: number,
-    html: string,
-  ) {
+    contentAsHTML: string,
+    imgUrl: string,
+  ): Promise<Newsletter> {
     const newsletter = await this.prisma.newsletter.create({
       data: {
         title: title,
         content: summary,
-        contentAsHTML: html,
+        contentAsHTML,
         categoryId: categoryId,
         createdAt: new Date(),
         usedNews,
         viewcount: 0,
+        imageUrl: imgUrl,
       },
     });
 

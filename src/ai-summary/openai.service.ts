@@ -6,6 +6,8 @@ import { CreateNewsletterService } from './createNewsletter.service';
 import { CreateTitleService } from './createTitle.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 import { HTMLFormatterService } from './parseHtml.service';
+import { BasicSummarizeService } from './basicSummarize.service';
+
 @Injectable()
 export class OpenAiService {
   private readonly logger = new Logger(OpenAiService.name);
@@ -16,9 +18,13 @@ export class OpenAiService {
     private readonly createNewsletterService: CreateNewsletterService,
     private readonly createTitleService: CreateTitleService,
     private readonly htmlFormatterService: HTMLFormatterService,
+    private readonly basicSummarizeService: BasicSummarizeService,
   ) {}
 
-  async summarizeText(news: CrawledNews[]): Promise<{
+  async summarizeText(
+    news: CrawledNews[],
+    categoryId: number,
+  ): Promise<{
     summary: string;
     openai: any;
     categoryId: number;
@@ -29,29 +35,22 @@ export class OpenAiService {
       throw new Error('No news found');
     }
     const startTime = Date.now();
-    this.logger.debug(`요약 시작: ${news.length}개의 뉴스`);
+    const newsText =
+      news.map((item) => item.title).join('\n') +
+      '\n' +
+      news.map((item) => item.content).join('\n');
     try {
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert summarizer. Summarize articles into Korean',
-          },
-          {
-            role: 'user',
-            content: `Summarize the following text into a concise paragraph of 500-1000 words:\n\n${news.map((item) => item.title).join('\n')}\n\n${news.map((item) => item.content).join('\n')}`,
-          },
-        ],
-        temperature: 0.5,
-      });
+      const response = await this.basicSummarizeService.basicSummarize(
+        newsText,
+        500,
+        1000,
+      );
 
       const summary = response.choices[0].message.content;
       const token = response.usage?.total_tokens;
       const duration = (Date.now() - startTime) / 1000;
       const newslinks = news.map((item) => item.link).toString();
-      this.logger.debug(`요약 완료: ${summary}`);
+      this.logger.debug(`요약 완료: ${summary.length}자`);
 
       await this.prisma.aiProcessLog.create({
         data: {
@@ -65,7 +64,6 @@ export class OpenAiService {
         },
       });
 
-      const categoryId = (await this.findCategoryService.findCategory(summary)).categoryId;
       const title = await this.createTitleService.createTitle(summary);
       const html = await this.htmlFormatterService.formatHtml(summary);
 
@@ -75,6 +73,7 @@ export class OpenAiService {
         newslinks,
         categoryId,
         html,
+        news.map((item) => item.images).toString(),
       );
 
       return { summary, openai: response, categoryId, newsletter };

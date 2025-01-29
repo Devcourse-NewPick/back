@@ -12,39 +12,41 @@ export class AiSummaryController {
   ) {}
 
   @Post('summarize')
-  async summarize(@Body() data: { dateStart: string; dateEnd: string }) {
-    const { dateStart, dateEnd } = data;
+  async summarize(
+    @Body() data: { dateStart: string; dateEnd: string; categoryId: number },
+  ) {
+    const { dateStart, dateEnd, categoryId } = data;
     const news = await this.crawlingRepository.getCrawledNews(
       dateStart,
       dateEnd,
+      categoryId,
     );
     this.logger.debug(
-      news.dateStart,
-      news.dateEnd,
-      `검색된 뉴스 수: ${news.news.length}`,
+      `dateStart: ${dateStart}, dateEnd: ${dateEnd}, categoryId: ${categoryId}, 검색된 뉴스 수: ${news.news.length}`,
     );
     if (news.news.length === 0) {
       this.logger.error('No news found');
       throw new Error('No news found');
-      return {
-        success: false,
-        message: 'No news found',
-      };
     }
-    const summary = await this.openAiService.summarizeText(news.news);
+    const result = await this.openAiService.summarizeText(
+      news.news,
+      categoryId,
+    );
     return {
-      newsLinks: news.news.map((item) => item.link).toString(),
-      summary: summary.summary,
-      openaiResponse: summary.openai,
+      newsletter: result.newsletter,
+      openaiResponse: result.openai,
     };
   }
 
   @Post('get-news')
-  async getNews(@Body() data: { dateStart: string; dateEnd: string }) {
-    const { dateStart, dateEnd } = data;
+  async getNews(
+    @Body() data: { dateStart: string; dateEnd: string; categoryId: number },
+  ) {
+    const { dateStart, dateEnd, categoryId } = data;
     const news = await this.crawlingRepository.getCrawledNews(
       dateStart,
       dateEnd,
+      categoryId,
     );
     return {
       count: news.news.length,

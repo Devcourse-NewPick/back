@@ -15,7 +15,7 @@ export class MailController {
     },
   ) {
     const { to, cc, newsletterId } = data;
-    return await this.mailService.sendMail(newsletterId, to, cc);
+    return await this.mailService.sendBasicMail(newsletterId, to, cc);
   }
 
   @Post('send-bulk')
@@ -27,7 +27,7 @@ export class MailController {
     },
   ) {
     const { newsletterId, recipients } = data;
-    return await this.mailService.sendBulkMail(
+    return await this.mailService.sendBulkMailSingleNewsletter(
       newsletterId,
       recipients.map((recipient) => recipient.to),
     );

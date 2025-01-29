@@ -18,11 +18,12 @@ import { OpenAiService } from './ai-summary/openai.service'; // OpenAI 서비스
 import { MailService } from './mail/mail.service'; // 메일 서비스
 import { CategoryModule } from './category/category.module'; // 카테고리 모듈
 import { SentryModule } from '@sentry/nestjs/setup';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MemoryMonitorService } from './monitoring/memory.monitor';
 import { BasicRepositoryModule } from './repository/module';
+import { CommonResponseInterceptor } from './common/response.interceptor';
 
 @Module({
   imports: [
@@ -56,6 +57,11 @@ import { BasicRepositoryModule } from './repository/module';
       provide: APP_FILTER,
       useClass: SentryGlobalFilter,
     },
+    // 인터셉터 등록 (이부분은 나중에 추가해야함 response 형식 전부 변경됨)
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: CommonResponseInterceptor,
+    // },
     MemoryMonitorService,
   ], // 서비스 등록
 })

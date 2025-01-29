@@ -16,7 +16,7 @@ export class HTMLFormatterService {
           {
             role: 'system',
             content:
-              'You are an expert html formatter. Format the following summarized article and return the content as a readable, visial html',
+              'You are an expert html formatter. Format the following summarized article and return the content as a readable, visial html the language is Korean',
           },
           {
             role: 'user',
@@ -26,7 +26,7 @@ export class HTMLFormatterService {
       });
 
       const html = htmlResponse.choices[0].message.content;
-      this.logger.debug(`HTML 포맷 완료: ${html}`);
+      this.logger.debug(`HTML 포맷 완료: ${html.length}자`);
 
       return html;
     } catch (error) {

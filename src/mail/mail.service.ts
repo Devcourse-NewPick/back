@@ -4,6 +4,10 @@ import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import { NODEMAILER } from './constants';
 import { JSDOM } from 'jsdom';
+import { Newsletter, NewsCategory } from '@prisma/client';
+import { formatNewsletterContent } from '../common/utils/html-formatter.util';
+import { newsletterTemplate } from './htmlTemplate';
+import { HTMLFormatterService } from 'src/ai-summary/parseHtml.service';
 @Injectable()
 export class MailService {
   private transporter: nodemailer.Transporter;
@@ -11,13 +15,14 @@ export class MailService {
   constructor(
     private readonly logger: Logger,
     private readonly prisma: MysqlPrismaService,
+    private readonly htmlFormatterService: HTMLFormatterService,
     @Inject(NODEMAILER) private readonly config: any,
   ) {
     this.logger.log('MailService 초기화 완료');
     this.transporter = nodemailer.createTransport(this.config);
   }
 
-  async sendMail(newsletterId: number, to: string, cc: string) {
+  async sendBasicMail(newsletterId: number, to: string, cc: string) {
     try {
       const newsletter = await this.prisma.newsletter.findUnique({
         where: { id: newsletterId },
@@ -59,18 +64,96 @@ export class MailService {
       cc: cc,
     });
   }
+  async sendBulkMailWithMultipleNewsletter(
+    subscribers: { email: string; interests: NewsCategory[] }[],
+    newsletterArray: Newsletter[],
+    basicIntroductionAsHTML?: string,
+  ) {
+    if (newsletterArray.length === 0) {
+      this.logger.error('No newsletter found');
+      throw new Error('No newsletter found');
+    }
+    if (subscribers.length === 0) {
+      this.logger.error('No subscribers found');
+      throw new Error('No subscribers found');
+    }
+    try {
+      const results = await Promise.all(
+        subscribers.map(async (subscriber) => {
+          const filteredNewsletter = newsletterArray.filter((newsletter) =>
+            subscriber.interests.some(
+              (interest) => interest.id === newsletter.categoryId,
+            ),
+          );
+          const newsletterWithTemplate = filteredNewsletter.map((newsletter) =>
+            newsletterTemplate(newsletter),
+          );
 
-  async sendBulkMail(newsletterId: number, emails: string[]) {
+          try {
+            await this.transporter.sendMail({
+              from: 'newpick.offical@gmail.com',
+              to: subscriber.email,
+              cc: '',
+              subject: filteredNewsletter[0].title,
+              html: basicIntroductionAsHTML + newsletterWithTemplate.join(''),
+            });
+
+            await this.prisma.emailArchive.create({
+              data: {
+                newsletterId: newsletterArray[0].id,
+                sentAt: new Date(),
+                email: subscriber.email,
+              },
+            });
+
+            return {
+              email: subscriber.email,
+              success: true,
+            };
+          } catch (error) {
+            this.logger.error(
+              `Failed to send email to ${subscriber.email}:`,
+              error,
+            );
+            return {
+              email: subscriber.email,
+              success: false,
+              error: error.message,
+            };
+          }
+        }),
+      );
+
+      const successCount = results.filter((r) => r.success).length;
+      const failureCount = results.filter((r) => !r.success).length;
+
+      this.logger.log(
+        `벌크 메일 전송 완료: 성공 ${successCount}, 실패 ${failureCount}`,
+      );
+
+      return {
+        success: successCount,
+        failed: failureCount,
+        message: `${successCount}개의 메일이 전송되었습니다. ${failureCount}개 실패`,
+        details: results,
+      };
+    } catch (error) {
+      this.logger.error('벌크 메일 전송 중 오류가 발생했습니다:', error);
+      return {
+        success: false,
+        message: '벌크 메일 전송 중 오류가 발생했습니다',
+        error: error.message,
+      };
+    }
+  }
+
+  async sendBulkMailSingleNewsletter(newsletterId: number, emails: string[]) {
     try {
       const newsletter = await this.prisma.newsletter.findUnique({
         where: { id: newsletterId },
       });
       if (!newsletter) {
         throw new Error('Newsletter not found');
-        return {
-          success: false,
-          message: 'Newsletter not found',
-        };
       }
       const originalNewsLink: Array<string> = newsletter.usedNews.split(',');
 
@@ -80,26 +163,9 @@ export class MailService {
         const doc = new JSDOM(html);
         return doc.window.document;
       }
-      const formattedContentAsHTML = newsletter.contentAsHTML
-        .replace(/```/g, '')
-        .replace(/html/g, '')
-        .replace(/\n\s*/g, '') // 불필요한 줄바꿈과 공백 제거
-        .replace(
-          /<p>/g,
-          '<p style="margin: 0.8em 0; line-height: 1.6; color: #333;">',
-        )
-        .replace(
-          /<h1>/g,
-          '<h1 style="color: #1a0dab; font-size: 24px; margin: 1em 0 0.5em 0;">',
-        )
-        .replace(
-          /<h2>/g,
-          '<h2 style="color: #333; font-size: 20px; margin: 1em 0 0.5em 0;">',
-        )
-        .replace(
-          /<div>/g,
-          '<div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; padding: 20px;">',
-        );
+      const formattedContentAsHTML = formatNewsletterContent(
+        newsletter.contentAsHTML,
+      );
 
       // 링크 메타데이터를 가져오고 HTML로 변환
       const originalNewsLinkAsHTML = await Promise.all(

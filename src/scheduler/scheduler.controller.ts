@@ -3,6 +3,7 @@ import { SchedulerService } from './scheduler.service';
 import { Logger } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
+import { NewsletterRepo } from 'src/repository/newsletter.repository';
 
 @Controller('scheduler')
 export class SchedulerController {
@@ -11,6 +12,7 @@ export class SchedulerController {
     private readonly subscriberService: SubscriberService,
     private readonly logger: Logger,
     private readonly mailService: MailService,
+    private readonly newsletterRepository: NewsletterRepo,
   ) {}
 
   @Post('crawling')
@@ -48,7 +50,12 @@ export class SchedulerController {
   async getRecievers() {
     const recievers = await this.subscriberService.getSubscribers();
     this.logger.log(`구독자 목록을 가져왔습니다.${recievers}`);
-    const mail = await this.mailService.sendBulkMail(1, recievers);
+    const newsletters = await this.newsletterRepository.getNewsletter(0, 3);
+    const mail = await this.mailService.sendBulkMailWithMultipleNewsletter(
+      recievers,
+      newsletters,
+      '테스트 입니다. \n 이곳에는 요약 뉴스가 들어갑니다.',
+    );
     return { recievers, mail };
   }
 }

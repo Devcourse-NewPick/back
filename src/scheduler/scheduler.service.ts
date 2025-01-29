@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { MailService } from 'src/mail/mail.service';
 import { OpenAiService } from 'src/ai-summary/openai.service';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
 import dayjs from 'dayjs';
+import { CategoryRepository } from 'src/category/category.repository';
+import { CronExpression } from 'src/common/constants';
+import { NewsletterRepo } from 'src/repository/newsletter.repository';
+import { HTMLFormatterService } from 'src/ai-summary/parseHtml.service';
 @Injectable()
 export class SchedulerService {
   private isCrawlingEnabled = false;
@@ -17,9 +21,12 @@ export class SchedulerService {
     private readonly crawlingService: CrawlingService,
     private readonly subscriberService: SubscriberService,
     private readonly crawlingRepository: CrawlingRepository,
+    private readonly categoryRepository: CategoryRepository,
+    private readonly newsletterRepository: NewsletterRepo,
+    private readonly htmlFormatterService: HTMLFormatterService,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_7AM)
+  @Cron(CronExpression.EVERY_DAY_AT_8AM)
   async startCrawling() {
     if (!this.isCrawlingEnabled) {
       this.logger.log('크롤링 스케줄러가 비활성화되었습니다.');
@@ -30,29 +37,54 @@ export class SchedulerService {
     await this.crawlingRepository.deleteCrawledNews();
     await this.crawlingService.crawling();
   }
-
+  // ai 요약 스케줄러
   @Cron(CronExpression.EVERY_DAY_AT_8AM)
-  async sendAiSummary() {
+  async makeAiSummary() {
     if (!this.isAiSummaryEnabled) {
       this.logger.log('ai 요약 스케줄러가 비활성화되었습니다.');
       return;
     }
-    const startDate = dayjs().subtract(23, 'hour').toDate().toISOString();
-    const endDate = dayjs().toDate().toISOString();
-    const news = await this.crawlingRepository.getCrawledNews(
-      startDate,
-      endDate,
-    );
-    const newsletter = await this.openAiService.summarizeText(news.news);
-    const subscribersEmail = await this.subscriberService.getSubscribers();
-    const result = await this.mailService.sendBulkMail(
-      newsletter.newsletter.id,
-      subscribersEmail,
-    );
-    this.logger.log(`가져온 뉴스 수 ${news.news.length}`);
-    this.logger.log(`요약 뉴스 수 ${newsletter.newsletter.length}`);
-    this.logger.log(`수신 자 수 ${subscribersEmail.length}`);
-    this.logger.log(`발송 결과 ${result.message}`);
+    const categoryList = await this.categoryRepository.findAll();
+    for (const category of categoryList) {
+      const startDate = dayjs().subtract(23, 'hour').toDate().toISOString();
+      const endDate = dayjs().toDate().toISOString();
+      const news = await this.crawlingRepository.getCrawledNews(
+        startDate,
+        endDate,
+        category.id,
+      );
+      const newsletter = await this.openAiService.summarizeText(
+        news.news,
+        category.id,
+      );
+      this.logger.log(`가져온 뉴스 수 ${news.news.length}`);
+      this.logger.log(`요약 뉴스 수 ${newsletter.newsletter.length}`);
+    }
+    this.logger.log(`생성 뉴스 수 : ${categoryList.length}`);
+  }
+  // 주간 요약 뉴스 발송
+  @Cron(CronExpression.EVERY_MONDAY_AT_8AM)
+  async sendAiSummary() {
+    const subscribers = await this.subscriberService.getSubscribers();
+    const categoryList = await this.categoryRepository.findAll();
+    for (const category of categoryList) {
+      const newsletters =
+        await this.newsletterRepository.getNewsletterByCategoryIdAndDate(
+          category.id,
+          dayjs().subtract(7, 'day').toDate(),
+          dayjs().toDate(),
+        );
+      const basicIntroduction = newsletters[0].content; //일시적으로 첫번째 뉴스를 기준으로 함
+      const basicIntroductionAsHTML =
+        await this.htmlFormatterService.formatHtml(basicIntroduction);
+
+      const result = await this.mailService.sendBulkMailWithMultipleNewsletter(
+        subscribers,
+        newsletters,
+        basicIntroductionAsHTML,
+      );
+      this.logger.log(`발송 결과 ${result.message}`);
+    }
   }
 
   toggleCrawlingScheduler(enable: boolean) {

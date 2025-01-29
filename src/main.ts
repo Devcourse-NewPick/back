@@ -40,6 +40,7 @@ async function bootstrap() {
     next();
   });
 
+  // app.setGlobalPrefix('api/v1');
   // 서버 실행
   try {
     await app.listen(port, '0.0.0.0'); // 0.0.0.0으로 외부 네트워크 수신 허용
