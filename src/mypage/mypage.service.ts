@@ -36,11 +36,16 @@ export class MyPageService {
   async getBookmarks(userId: number) {
     const bookmarks = await this.prisma.feedback.findMany({
       where: { userId, likes: true },
-      select: {
-        newsId: true,
-        createdAt: true,
-        newsletterId: true, // 추가: newsletterId를 포함한 데이터 반환
-        rating: true, // 추가: rating 필드 반환
+      include: {
+        newsletter: {
+          select: {
+            id: true,
+            title: true, // news-title 추가
+            imageUrl: true, // news-img 추가
+            content: true, // news-summary 추가 (100자 제한)
+            createdAt: true, // news-createdAt 추가
+          },
+        },
       },
     });
 
@@ -48,7 +53,15 @@ export class MyPageService {
       throw new NotFoundException('No bookmarks found for this user.');
     }
 
-    return bookmarks;
+    return bookmarks.map((bookmark) => ({
+      id: bookmark.newsletter?.id,
+      newsTitle: bookmark.newsletter?.title, // 추가
+      newsImg: bookmark.newsletter?.imageUrl || null, // 추가 (이미지 없으면 null)
+      newsCreatedAt: bookmark.newsletter?.createdAt, // 추가 (뉴스 생성 날짜)
+      newsSummary: bookmark.newsletter?.content
+        ? bookmark.newsletter.content.substring(0, 100) + '...' // 추가 (100자 요약)
+        : null,
+    }));
   }
 
   /**
@@ -70,7 +83,7 @@ export class MyPageService {
   async getSubscriptionHistory(userId: number) {
     const subscriptions = await this.prisma.subscriber.findMany({
       where: { userId },
-      orderBy: { startedAt: 'desc' }, // 최신순 정렬
+      orderBy: { startedAt: 'desc' },
       select: {
         id: true,
         startedAt: true,
