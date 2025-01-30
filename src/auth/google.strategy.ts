@@ -9,7 +9,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_REDIRECT_URI,
-      scope: ['email', 'profile'], // 이메일 및 프로필 정보 요청
+      scope: ['email', 'profile'],
     });
   }
 
@@ -19,16 +19,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ): Promise<any> {
-    const { id, emails, displayName, photos, name } = profile;
+    const { id, emails, displayName, photos } = profile;
 
     const user = {
       googleSub: id,
-      email: emails[0].value,
-      username: displayName || name.givenName,
-      profileImg: photos?.[0]?.value || null, // 이미지가 없으면 null 반환
-      accessToken,
+      email: emails?.[0]?.value || null,
+      username: displayName || null,
+      profileImg: photos?.[0]?.value || null,
     };
 
-    done(null, user);
+    return done(null, user);
   }
 }
