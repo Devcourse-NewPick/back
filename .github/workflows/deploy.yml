@@ -3,8 +3,8 @@ name: Deploy to AWS EC2
 on:
   push:
     branches:
-      # 메인 브랜치에 푸시될 때 실행
-      - main  
+      # 배포할 브랜치
+      - main
 
 jobs:
   deploy:
@@ -15,20 +15,15 @@ jobs:
       # 코드 체크아웃
       - name: Checkout Repository
         uses: actions/checkout@v4
-      # Node.js 설정
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-      # SSH로 EC2에 접속하여 코드 업데이트
+
+      # 코드 클론 및 업데이트
       - name: Clone and Update Code
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          command_timeout: "20m"
+          command_timeout: "5m"
           script: |
             echo "🔄 Updating code..."
             cd ~/back || {
@@ -38,32 +33,7 @@ jobs:
             }
             git pull origin main
             echo "✅ Code update complete"
-      # 의존성 설치
-      - name: Install Dependencies
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          command_timeout: "10m"
-          script: |
-            cd ~/back
-            echo "📦 Installing dependencies..."
-            npm install
-            echo "✅ Dependencies installed"
-      # 프로젝트 빌드
-      - name: Build Project
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          command_timeout: "10m"
-          script: |
-            cd ~/back
-            echo "🛠️ Building project..."
-            npm run build
-            echo "✅ Project build complete"
+
       # 서비스 재시작
       - name: Restart Service
         uses: appleboy/ssh-action@master
@@ -71,7 +41,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          command_timeout: "10m"
+          command_timeout: "3m"
           script: |
             echo "🔄 Restarting service..."
             if sudo systemctl is-active nestjs.service; then
@@ -80,6 +50,7 @@ jobs:
               sudo systemctl start nestjs.service
             fi
             echo "✅ Service restart complete"
+
       # 배포 확인
       - name: Verify Deployment
         uses: appleboy/ssh-action@master
@@ -90,6 +61,10 @@ jobs:
           script: |
             if sudo systemctl is-active nestjs.service; then
               echo "🚀 Deployment successful! Service is running."
+            else
+              echo "❌ Service failed to start"
+              exit 1
+            fi
             else
               echo "❌ Service failed to start"
               exit 1
