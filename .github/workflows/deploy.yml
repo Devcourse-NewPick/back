@@ -16,14 +16,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 코드 클론 및 업데이트
-      - name: Clone and Update Code
+      # 코드 클론, 업데이트 및 빌드
+      - name: Clone, Update and Build Code
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          command_timeout: "5m"
+          command_timeout: "10m"  # 빌드 시간을 고려해 타임아웃 증가
           script: |
             echo "🔄 Updating code..."
             cd ~/back || {
@@ -32,7 +32,14 @@ jobs:
               cd ~/back
             }
             git pull origin main
-            echo "✅ Code update complete"
+            
+            echo "📦 Installing dependencies..."
+            npm install
+            
+            echo "🔨 Building project..."
+            npm run build
+            
+            echo "✅ Build process complete"
 
       # 서비스 재시작
       - name: Restart Service
