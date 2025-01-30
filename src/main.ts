@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+import cookieParser from 'cookie-parser'; // 쿠키파서 추가(리프레시토큰용)
 import './instruments';
 
 async function bootstrap() {
@@ -11,11 +12,11 @@ async function bootstrap() {
   const configService: ConfigService = app.get(ConfigService);
 
   // 환경 변수 및 기본값 설정
-  const frontendUrl: string = configService.get<string>(
-    'FRONTEND_URL',
-    // 'http://localhost:3000',
-  );
+  const frontendUrl: string = configService.get<string>('FRONTEND_URL');
   const port: number = configService.get<number>('PORT', 3001);
+
+  // 쿠키 파서 미들웨어 적용
+  app.use(cookieParser());
 
   // CORS 설정
   app.enableCors({
@@ -40,7 +41,6 @@ async function bootstrap() {
     next();
   });
 
-  // app.setGlobalPrefix('api/v1');
   // 서버 실행
   try {
     await app.listen(port, '0.0.0.0'); // 0.0.0.0으로 외부 네트워크 수신 허용

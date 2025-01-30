@@ -9,19 +9,12 @@ export class AuthService {
     private readonly prisma: MysqlPrismaService,
   ) {}
 
-  /**
-   * Google Auth 사용자 검증 또는 생성
-   * @param googleSub Google Auth의 고유 사용자 ID
-   * @param email 사용자 이메일
-   * @param username 사용자 이름
-   * @param profileImg 프로필 이미지 URL
-   */
   async validateOrCreateGoogleUser(
     googleSub: string,
     email: string,
     username: string,
     profileImg: string,
-  ): Promise<any> {
+  ) {
     let user = await this.prisma.user.findUnique({
       where: { email },
       select: { id: true, email: true, username: true, profileImg: true },
@@ -32,53 +25,55 @@ export class AuthService {
         data: {
           email,
           username,
-          password: googleSub, // Google Sub를 비밀번호 대체값으로 사용
+          password: googleSub,
           profileImg,
         },
         select: { id: true, email: true, username: true, profileImg: true },
       });
-    } else {
-      if (!user.username || user.username !== username || !user.profileImg) {
-        user = await this.prisma.user.update({
-          where: { email },
-          data: { username, profileImg },
-          select: { id: true, email: true, username: true, profileImg: true },
-        });
-      }
     }
 
     return user;
   }
 
-  /**
-   * 일반 사용자 검증
-   * @param email 사용자 이메일
-   * @param password 사용자 비밀번호
-   */
-  async validateUser(email: string, password: string): Promise<any> {
-    // 예시: 실제로는 DB에서 사용자 정보를 조회하고 비밀번호를 비교해야 함.
-    if (email === 'test@example.com' && password === 'password') {
-      return { id: 1, email };
-    }
-    return null;
+  async generateJwtTokens(user: { id: number; email: string }) {
+    const payload = { sub: user.id, email: user.email };
+
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: '7d',
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
+
+    await this.prisma.oAuthToken.upsert({
+      where: { id: user.id }, // 기존 userId -> id 수정
+      update: {
+        accessToken,
+        refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+      create: {
+        userId: user.id,
+        accessToken,
+        refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    return { accessToken, refreshToken };
   }
 
-  /**
-   * JWT 토큰 생성
-   * @param user 사용자 정보
-   */
-  generateJwtToken(user: {
-    id: number;
-    email: string;
-    username?: string;
-    profileImg?: string;
-  }): string {
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      username: user.username || null,
-      profileImg: user.profileImg || null,
-    };
-    return this.jwtService.sign(payload);
+  async refreshAccessToken(refreshToken: string) {
+    const decoded = this.jwtService.verify(refreshToken, {
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
+
+    return this.jwtService.sign(
+      { sub: decoded.sub, email: decoded.email },
+      { expiresIn: '1h' },
+    );
+  }
+
+  async removeRefreshToken(refreshToken: string) {
+    await this.prisma.oAuthToken.deleteMany({ where: { refreshToken } });
   }
 }
