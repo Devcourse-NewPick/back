@@ -48,7 +48,9 @@ jobs:
           command_timeout: "10m"
           script: |
             cd ~/back
-            npm ci --quiet
+            echo "📦 Installing dependencies..."
+            npm install
+            echo "✅ Dependencies installed"
       # 프로젝트 빌드
       - name: Build Project
         uses: appleboy/ssh-action@master
@@ -59,7 +61,9 @@ jobs:
           command_timeout: "10m"
           script: |
             cd ~/back
+            echo "🛠️ Building project..."
             npm run build
+            echo "✅ Project build complete"
       # 서비스 재시작
       - name: Restart Service
         uses: appleboy/ssh-action@master
