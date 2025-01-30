@@ -36,6 +36,9 @@ jobs:
             echo "📦 Installing dependencies..."
             npm install
             
+            echo "🛠️ Initializing schema..."
+            npm run prisma:generate:mysql
+            
             echo "🔨 Building project..."
             npm run build
             
@@ -68,10 +71,6 @@ jobs:
           script: |
             if sudo systemctl is-active nestjs.service; then
               echo "🚀 Deployment successful! Service is running."
-            else
-              echo "❌ Service failed to start"
-              exit 1
-            fi
             else
               echo "❌ Service failed to start"
               exit 1
