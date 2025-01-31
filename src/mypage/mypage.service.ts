@@ -44,6 +44,13 @@ export class MyPageService {
             imageUrl: true, // news-img 추가
             content: true, // news-summary 추가 (100자 제한)
             createdAt: true, // news-createdAt 추가
+            category: {
+              // 카테고리 정보 추가
+              select: {
+                id: true,
+                name: true, // 카테고리 이름 추가
+              },
+            },
           },
         },
       },
@@ -55,12 +62,18 @@ export class MyPageService {
 
     return bookmarks.map((bookmark) => ({
       id: bookmark.newsletter?.id,
-      newsTitle: bookmark.newsletter?.title, // 추가
-      newsImg: bookmark.newsletter?.imageUrl || null, // 추가 (이미지 없으면 null)
-      newsCreatedAt: bookmark.newsletter?.createdAt, // 추가 (뉴스 생성 날짜)
+      newsTitle: bookmark.newsletter?.title,
+      newsImg: bookmark.newsletter?.imageUrl || null,
+      newsCreatedAt: bookmark.newsletter?.createdAt,
       newsSummary: bookmark.newsletter?.content
-        ? bookmark.newsletter.content.substring(0, 100) + '...' // 추가 (100자 요약)
+        ? bookmark.newsletter.content.substring(0, 100) + '...'
         : null,
+      category: bookmark.newsletter?.category
+        ? {
+            id: bookmark.newsletter.category.id,
+            name: bookmark.newsletter.category.name,
+          }
+        : null, // 카테고리 정보 포함
     }));
   }
 

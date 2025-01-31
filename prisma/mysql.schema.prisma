@@ -47,7 +47,7 @@ model Subscriber {
 // OAuthToken 모델
 model OAuthToken {
   id           Int      @id @default(autoincrement())
-  userId       Int
+  userId       Int      @unique
   accessToken  String   @db.Text
   refreshToken String   @db.Text
   expiresAt    DateTime
