@@ -17,8 +17,8 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      # 3️⃣ SSH로 EC2 서버에 접속하여 배포
-      - name: Install dependencies and build
+      # 3️⃣ 코드 업데이트 및 빌드
+      - name: Update code and build
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -48,7 +48,7 @@ jobs:
             echo "🔨 Building project..."
             npm run build
             echo "✅ Build process complete"
-      # 4️⃣ 서비스 재시작 및 동작 확인인
+      # 4️⃣ 서비스 재시작 및 동작 확인
       - name: Restart Service
         uses: appleboy/ssh-action@master
         with:
