@@ -21,7 +21,7 @@ export class MyPageController {
   @Get('profile')
   async getProfile(@Req() req) {
     console.log('Decoded user:', req.user); // 디코딩된 사용자 정보 확인
-    const userId = this.validateAndParseUserId(req.user?.userId);
+    const userId = this.validateAndParseUserId(req.user?.id);
     return this.myPageService.getProfile(userId);
   }
 
@@ -30,7 +30,7 @@ export class MyPageController {
    */
   @Get('bookmarks')
   async getBookmarks(@Req() req) {
-    const userId = this.validateAndParseUserId(req.user?.userId);
+    const userId = this.validateAndParseUserId(req.user?.id);
     return this.myPageService.getBookmarks(userId);
   }
 
@@ -39,7 +39,7 @@ export class MyPageController {
    */
   @Get('subscriptions/status')
   async getSubscriptionStatus(@Req() req) {
-    const userId = this.validateAndParseUserId(req.user?.userId);
+    const userId = this.validateAndParseUserId(req.user?.id);
     return this.myPageService.getSubscriptionStatus(userId);
   }
 
@@ -48,7 +48,7 @@ export class MyPageController {
    */
   @Get('subscriptions/history')
   async getSubscriptionHistory(@Req() req) {
-    const userId = this.validateAndParseUserId(req.user?.userId);
+    const userId = this.validateAndParseUserId(req.user?.id);
     return this.myPageService.getSubscriptionHistory(userId);
   }
 
@@ -57,7 +57,7 @@ export class MyPageController {
    */
   @Get('interests')
   async getInterests(@Req() req) {
-    const userId = this.validateAndParseUserId(req.user?.userId);
+    const userId = this.validateAndParseUserId(req.user?.id);
     return this.myPageService.getInterests(userId);
   }
 
@@ -66,7 +66,7 @@ export class MyPageController {
    */
   @Patch('interests')
   async updateInterests(@Req() req, @Body('interests') interests: string[]) {
-    const userId = this.validateAndParseUserId(req.user?.userId);
+    const userId = this.validateAndParseUserId(req.user?.id);
     const validInterests = ['정치', '사회', 'IT'];
 
     // 유효성 검사

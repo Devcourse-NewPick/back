@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Req,
+  Post,
   Res,
   UseGuards,
   UnauthorizedException,
@@ -129,5 +130,26 @@ export class AuthController {
     });
 
     return res.json({ message: 'Token refreshed' });
+  }
+
+  @Post('logout')
+  @UseGuards(AuthGuard('jwt')) // JWT 인증 적용
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const user = req.user as { id: number };
+    if (!user?.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // DB에서 해당 사용자의 refresh_token 삭제
+    await this.authService.removeRefreshToken(user.id);
+
+    // 쿠키에서 access_token 제거
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    return res.status(200).json({ message: 'Logged out successfully' });
   }
 }
