@@ -27,6 +27,9 @@ export class MailService {
       const newsletter = await this.prisma.newsletter.findUnique({
         where: { id: newsletterId },
       });
+      if (!newsletter) {
+        throw new Error('Newsletter not found');
+      }
       await this.transporter.sendMail({
         from: 'newpick.offical@gmail.com',
         to: to, //string or Array
@@ -64,6 +67,7 @@ export class MailService {
       cc: cc,
     });
   }
+
   async sendBulkMailWithMultipleNewsletter(
     subscribers: { email: string; interests: NewsCategory[] }[],
     newsletterArray: Newsletter[],

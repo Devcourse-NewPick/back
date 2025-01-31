@@ -46,6 +46,37 @@ export class SchedulerController {
     };
   }
 
+  @Post('change-mail-send-cycle')
+  changeMailSendCycle(@Body() data: { hour: number; day: number }) {
+    this.schedulerService.setMailSendCycle(data.hour, data.day);
+    return {
+      success: true,
+      message: '메일 발송 주기가 변경되었습니다.',
+      cycle: this.schedulerService.getMailSendCycle(),
+    };
+  }
+  @Get('mail-send-cycle')
+  getMailSendCycle() {
+    return this.schedulerService.getMailSendCycle();
+  }
+  @Post('start-ai-summary')
+  startAiSummary() {
+    this.schedulerService.manualStartAiSummary();
+    return {
+      success: true,
+      message: 'AI 요약 시작되었습니다.',
+    };
+  }
+
+  @Post('start-crawling')
+  startCrawling() {
+    this.schedulerService.manualStartCrawling();
+    return {
+      success: true,
+      message: '크롤링 시작되었습니다.',
+    };
+  }
+
   @Get('mailtest') // 테스트용
   async getRecievers() {
     const recievers = await this.subscriberService.getSubscribers();

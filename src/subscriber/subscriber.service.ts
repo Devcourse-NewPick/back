@@ -151,7 +151,7 @@ export class SubscriberService {
         user: true,
       },
       where: {
-        endAt: null,
+        status: 'active',
       },
     });
 
