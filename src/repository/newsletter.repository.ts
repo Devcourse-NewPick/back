@@ -6,11 +6,22 @@ import { Prisma, Newsletter } from '@prisma/client';
 export class NewsletterRepo {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
-  async getNewsletter(offset: number, limit: number) {
-    return this.prisma.newsletter.findMany({
-      skip: offset,
-      take: limit,
-    });
+  async getNewsletter(offset: number, limit: number, popular?: boolean) {
+    if (popular) {
+      const orderBy = popular ? 'desc' : 'asc';
+      return this.prisma.newsletter.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          viewcount: orderBy,
+        },
+      });
+    } else {
+      return this.prisma.newsletter.findMany({
+        skip: offset,
+        take: limit,
+      });
+    }
   }
 
   async getNewsletterById(id: number) {
