@@ -46,7 +46,11 @@ export class AuthService {
     );
   }
 
-  async storeRefreshToken(userId: number, accessToken: string, refreshToken: string) {
+  async storeRefreshToken(
+    userId: number,
+    accessToken: string,
+    refreshToken: string,
+  ) {
     await this.prisma.oAuthToken.upsert({
       where: { userId: userId },
       update: {

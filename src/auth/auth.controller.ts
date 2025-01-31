@@ -47,10 +47,17 @@ export class AuthController {
       return res.status(401).json({ message: 'User validation failed' });
     }
 
-    const accessToken = await this.authService.generateAccessToken(user.id, user.email);
+    const accessToken = await this.authService.generateAccessToken(
+      user.id,
+      user.email,
+    );
     const refreshToken = await this.authService.generateRefreshToken(user.id);
 
-    await this.authService.storeRefreshToken(user.id, accessToken, refreshToken);
+    await this.authService.storeRefreshToken(
+      user.id,
+      accessToken,
+      refreshToken,
+    );
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
@@ -73,7 +80,9 @@ export class AuthController {
                 email: user.email,
                 username: user.username,
                 profileImg: user.profileImg,
-              }).replace(/\\/g, '\\\\').replace(/'/g, "\\'")};
+              })
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")};
 
               if (window.opener) {
                 window.opener.postMessage({ type: 'oauthSuccess', token, user }, '${frontendUrl}');
@@ -103,7 +112,10 @@ export class AuthController {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const newAccessToken = await this.authService.refreshAccessToken(userId, refreshToken);
+    const newAccessToken = await this.authService.refreshAccessToken(
+      userId,
+      refreshToken,
+    );
 
     if (!newAccessToken) {
       return res.status(401).json({ message: 'Invalid refresh token' });
