@@ -36,6 +36,22 @@ jobs:
             git reset --hard origin/main
             echo "✅ Code updated"
 
+            echo "🔑 Creating .env file..."
+            echo "PORT='${{ secrets.PORT }}'" | sudo tee ~/back/.env > /dev/null
+            echo "MYSQL_URL='${{ secrets.MYSQL_URL }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "MONGO_URL='${{ secrets.MONGO_URL }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "FRONTEND_URL='${{ secrets.FRONTEND_URL }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "JWT_SECRET='${{ secrets.JWT_SECRET }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "GOOGLE_RIDIRECT_URL='${{ secrets.GOOGLE_RIDIRECT_URL }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "OPENAU_API_KEY='${{ secrets.OPENAU_API_KEY }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "SENTRY_DSN='${{ secrets.SENTRY_DSN }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "MAIL_USER='${{ secrets.MAIL_USER }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "MAIL_PASSWORD='${{ secrets.MAIL_PASSWORD }}'" | sudo tee -a ~/back/.env > /dev/null
+            sudo chown ${{ secrets.EC2_USER }}:${{ secrets.EC2_USER }} ~/back/.env
+            echo "✅ .env file created"
+
             echo "📦 Installing dependencies..."
             npm install
             echo "✅ Dependencies installed"
@@ -43,7 +59,7 @@ jobs:
             echo "🌈 Generating Prisma client..."
             npm run prisma:generate:mysql
             npm run generate:category
-            echo "✅ Prisma migration and generation complete"
+            echo "✅ Prisma generation complete"
             
             echo "🔨 Building project..."
             npm run build
