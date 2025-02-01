@@ -40,7 +40,7 @@ jobs:
             npm install
             echo "✅ Dependencies installed"
             
-            echo "🌈 generating Prisma client..."
+            echo "🌈 Generating Prisma client..."
             npm run prisma:generate:mysql
             npm run generate:category
             echo "✅ Prisma migration and generation complete"
