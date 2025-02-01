@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import { NODEMAILER } from './constants';
 import { JSDOM } from 'jsdom';
-import { Newsletter, NewsCategory } from '@prisma/client';
+import { Newsletter } from '@prisma/client';
 import { formatNewsletterContent } from '../common/utils/html-formatter.util';
 import { newsletterTemplate } from './htmlTemplate';
 import { HTMLFormatterService } from 'src/ai-summary/parseHtml.service';
@@ -69,7 +69,7 @@ export class MailService {
   }
 
   async sendBulkMailWithMultipleNewsletter(
-    subscribers: { email: string; interests: string[] }[],
+    subscribers: { email: string; interests: number[]; name: string }[],
     newsletterArray: Newsletter[],
     basicIntroductionAsHTML?: string,
   ) {
@@ -81,15 +81,28 @@ export class MailService {
       this.logger.error('No subscribers found');
       throw new Error('No subscribers found');
     }
+
     try {
       const results = await Promise.all(
         subscribers.map(async (subscriber) => {
-          const filteredNewsletter = newsletterArray.filter((newsletter) =>
-            subscriber.interests.some(
-              (interest) => parseInt(interest, 10) === newsletter.categoryId,
-            ),
+          // 구독자의 관심사에 해당하는 뉴스레터만 필터링
+          const filteredNewsletters = newsletterArray.filter((newsletter) =>
+            subscriber.interests.includes(newsletter.categoryId),
           );
-          const newsletterWithTemplate = filteredNewsletter.map((newsletter) =>
+
+          if (filteredNewsletters.length === 0) {
+            this.logger.debug(
+              `${subscriber.email}님의 관심사에 해당하는 뉴스레터가 없습니다.`,
+            );
+            return {
+              email: subscriber.email,
+              success: true,
+              message: '관심사에 해당하는 뉴스레터 없음',
+            };
+          }
+
+          // 필터링된 뉴스레터들을 템플릿으로 변환
+          const newsletterWithTemplate = filteredNewsletters.map((newsletter) =>
             newsletterTemplate(newsletter),
           );
 
@@ -98,18 +111,20 @@ export class MailService {
               from: 'newpick.offical@gmail.com',
               to: subscriber.email,
               cc: '',
-              subject: filteredNewsletter[0].title,
+              subject: `안녕하세요 ${subscriber.name}님! 이번주 뉴스레터가 도착했습니다.`,
               html: basicIntroductionAsHTML + newsletterWithTemplate.join(''),
             });
 
+            // 이메일 아카이브 생성
             await this.prisma.emailArchive.create({
               data: {
-                newsletterId: newsletterArray[0].id,
+                newsletterId: newsletterArray[0].id, // 대표 뉴스레터 ID 저장
                 sentAt: new Date(),
                 email: subscriber.email,
               },
             });
 
+            this.logger.debug(`이번주 뉴스레터 발송 완료: ${subscriber.email}`);
             return {
               email: subscriber.email,
               success: true,

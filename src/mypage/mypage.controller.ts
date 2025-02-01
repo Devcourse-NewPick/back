@@ -11,7 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { MyPageService } from './mypage.service';
 
 @Controller('mypage')
-// @UseGuards(AuthGuard('jwt')) // JWT 인증 적용
+@UseGuards(AuthGuard('jwt')) // JWT 인증 적용
 export class MyPageController {
   constructor(private readonly myPageService: MyPageService) {}
 
@@ -56,8 +56,8 @@ export class MyPageController {
    * 관심사 조회
    */
   @Get('interests')
-  async getInterests(@Req() req) {
-    const userId = this.validateAndParseUserId(req.user?.id);
+  async getInterests(@Body() data: { userId: number }) {
+    const userId = this.validateAndParseUserId(data.userId);
     return this.myPageService.getInterests(userId);
   }
 

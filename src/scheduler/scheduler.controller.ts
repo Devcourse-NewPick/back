@@ -55,9 +55,13 @@ export class SchedulerController {
       cycle: this.schedulerService.getMailSendCycle(),
     };
   }
-  @Get('mail-send-cycle')
-  getMailSendCycle() {
-    return this.schedulerService.getMailSendCycle();
+  @Post('start-crawling')
+  startCrawling() {
+    this.schedulerService.manualStartCrawling();
+    return {
+      success: true,
+      message: '크롤링 시작되었습니다.',
+    };
   }
   @Post('start-ai-summary')
   startAiSummary() {
@@ -67,14 +71,18 @@ export class SchedulerController {
       message: 'AI 요약 시작되었습니다.',
     };
   }
-
-  @Post('start-crawling')
-  startCrawling() {
-    this.schedulerService.manualStartCrawling();
+  @Post('start-mail-send')
+  startMailSend() {
+    this.schedulerService.manualStartMailSend();
     return {
       success: true,
-      message: '크롤링 시작되었습니다.',
+      message: '메일 발송 시작되었습니다.',
     };
+  }
+
+  @Get('mail-send-cycle')
+  getMailSendCycle() {
+    return this.schedulerService.getMailSendCycle();
   }
 
   @Get('mailtest') // 테스트용
@@ -85,7 +93,8 @@ export class SchedulerController {
     const mail = await this.mailService.sendBulkMailWithMultipleNewsletter(
       recievers.map((reciever) => ({
         email: reciever.email,
-        interests: reciever.interests.map((interest) => interest.name),
+        interests: reciever.interests,
+        name: reciever.name,
       })),
       newsletters,
       '테스트 입니다. \n 이곳에는 요약 뉴스가 들어갑니다.',
