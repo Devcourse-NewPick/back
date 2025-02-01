@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CrawledNews } from './schema/crawling.schema';
@@ -17,11 +17,11 @@ export class CrawlingRepository {
   ) {}
 
   private readonly logger = new Logger(CrawlingRepository.name);
-  // 크롤링 데이터 저장
+
   async getAllNews(): Promise<CrawledNews[]> {
     return await this.crawledNews.find().exec();
   }
-
+  // 크롤링 데이터 저장
   async createCrawledNews(dataArray: CrawledNews[]): Promise<CrawledNews[]> {
     const news: CrawledNews[] = [];
     try {
@@ -43,7 +43,7 @@ export class CrawlingRepository {
   async getLatestCrawledNews(): Promise<CrawledNews> {
     return await this.crawledNews.findOne().sort({ createdAt: -1 });
   }
-  // 가장 오래된 데이터 조회회
+  // 가장 오래된 데이터 조회
   async getOldestCrawledNews(): Promise<CrawledNews> {
     return await this.crawledNews.findOne().sort({ createdAt: 1 });
   }
@@ -79,6 +79,21 @@ export class CrawlingRepository {
         dateStart,
         dateEnd,
       };
+    } catch (error) {
+      this.logger.error(`Failed to fetch data: ${error.message}`);
+      throw error;
+    }
+  }
+  // 고유 링크로 해당 크롤링 데이터 조회
+  async getCrawledNewsByLink(link: string): Promise<CrawledNews> {
+    try {
+      const news = await this.crawledNews.findOne({ link }).exec();
+
+      if (!news) {
+        throw new NotFoundException('Not Found');
+      }
+
+      return news;
     } catch (error) {
       this.logger.error(`Failed to fetch data: ${error.message}`);
       throw error;
