@@ -49,6 +49,11 @@ export class NewsletterRepo {
       orderBy: { createdAt: 'asc' },
     });
   }
+  async getNewsletterByDateRange(dateStart: Date, dateEnd: Date) {
+    return this.prisma.newsletter.findMany({
+      where: { createdAt: { gte: dateStart, lte: dateEnd } },
+    });
+  }
 
   async getNewsletterByCategoryIdAndDate(
     categoryId: number,

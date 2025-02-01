@@ -95,15 +95,15 @@ export class SchedulerService {
       this.logger.error(`AI 요약 실패: ${error.message}`);
     }
   }
-  @Cron(CronExpression.EVERY_5_SECONDS)
-  async sendAiSummary() {
-    const subscribers = await this.subscriberService.getSubscribers();
-    if (subscribers.length === 0) {
-      throw new NotFoundException('구독자가 없습니다.');
-      return;
-    }
-    this.logger.debug(subscribers[0]);
-  }
+  // @Cron(CronExpression.EVERY_5_SECONDS)
+  // async sendAiSummary() {
+  //   const subscribers = await this.subscriberService.getSubscribers();
+  //   if (subscribers.length === 0) {
+  //     throw new NotFoundException('구독자가 없습니다.');
+  //     return;
+  //   }
+  //   this.logger.debug(subscribers[0]);
+  // }
 
   // 주간 요약 뉴스 발송
   @Cron(CronExpression.EVERY_MONDAY_AT_8AM, {
@@ -111,33 +111,55 @@ export class SchedulerService {
   })
   async sendEmailSummary() {
     const subscribers = await this.subscriberService.getSubscribers();
-    const categoryList = await this.categoryRepository.findAll();
+    this.logger.debug(`구독자 수: ${subscribers.length}`);
+
     if (subscribers.length === 0) {
       throw new NotFoundException('구독자가 없습니다.');
       return;
     }
-    if (categoryList.length === 0) {
-      throw new NotFoundException('카테고리가 없습니다.');
+
+    // 관심사가 설정된 구독자만 필터링
+    const validSubscribers = subscribers.filter(
+      (subscriber) => subscriber.interests && subscriber.interests.length > 0,
+    );
+
+    if (validSubscribers.length === 0) {
+      this.logger.warn('관심사가 설정된 구독자가 없습니다.');
       return;
     }
-    for (const category of categoryList) {
-      const newsletters =
-        await this.newsletterRepository.getNewsletterByCategoryIdAndDate(
-          category.id,
-          dayjs().subtract(7, 'day').toDate(),
-          dayjs().toDate(),
-        );
-      const basicIntroduction = newsletters[0].content; //일시적으로 첫번째 뉴스를 기준으로 함
-      const basicIntroductionAsHTML =
-        await this.htmlFormatterService.formatHtml(basicIntroduction);
 
-      const result = await this.mailService.sendBulkMailWithMultipleNewsletter(
-        subscribers,
-        newsletters,
-        basicIntroductionAsHTML,
+    // 지난 7일간의 모든 뉴스레터를 한번에 가져옵니다
+    const allNewsletters =
+      await this.newsletterRepository.getNewsletterByDateRange(
+        dayjs().subtract(7, 'day').toDate(),
+        dayjs().toDate(),
       );
-      this.logger.log(`발송 결과 ${result.message}`);
+
+    this.logger.debug(`기간 내 뉴스레터 수: ${allNewsletters.length}`);
+
+    if (!allNewsletters.length) {
+      this.logger.debug('기간 내 뉴스레터가 없습니다.');
+      return;
     }
+
+    // 첫 번째 뉴스레터의 content를 기본 소개글로 사용 (일시적)
+    const basicIntroductionAsHTML = allNewsletters[0].contentAsHTML
+      .replace(/```/gm, '')
+      .replace(/html/gm, '');
+
+    const result = await this.mailService.sendBulkMailWithMultipleNewsletter(
+      validSubscribers.map((subscriber) => ({
+        email: subscriber.email,
+        interests: subscriber.interests,
+        name: subscriber.name,
+      })),
+      allNewsletters,
+      basicIntroductionAsHTML,
+    );
+
+    this.logger.log(
+      `발송 결과 ${result.details.filter((r) => r.success).length}건 성공, ${result.details.filter((r) => !r.success).length}건 실패`,
+    );
   }
 
   toggleCrawlingScheduler(enable: boolean) {
@@ -182,6 +204,14 @@ export class SchedulerService {
       await this.makeAiSummary(); // 직접 메서드 호출
     } catch (error) {
       this.logger.error(`수동 AI 요약 실패: ${error.message}`);
+    }
+  }
+  async manualStartMailSend() {
+    this.logger.debug('메일 발송 수동 시작');
+    try {
+      await this.sendEmailSummary(); // 직접 메서드 호출
+    } catch (error) {
+      this.logger.error(`수동 메일 발송 실패: ${error.message}`);
     }
   }
 

@@ -130,30 +130,59 @@ export class MyPageService {
     return user.interests || [];
   }
 
-  /**
-   * 관심사 수정
-   * @param userId 사용자 ID
-   * @param interests 관심사 배열
-   */
-  async updateInterests(userId: number, interests: string[]) {
+  async addInterests(userId: number, categoryId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+    });
+    const categories = await this.prisma.newsCategory.findUnique({
+      where: {
+        id: categoryId,
+      },
     });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} does not exist.`);
     }
-
-    const validInterests = ['정치', '사회', 'IT'];
-
-    // 유효하지 않은 관심사 필터링
-    if (interests.some((interest) => !validInterests.includes(interest))) {
-      throw new Error('Invalid interests provided');
+    if (!categories) {
+      throw new NotFoundException('Some category IDs are invalid');
     }
+    if (Array.isArray(user.interests) && user.interests.includes(categoryId)) {
+      throw new NotFoundException('Category already exists');
+    }
+    const interestsList = Array.isArray(user.interests)
+      ? [...user.interests, categoryId]
+      : [categoryId];
 
     return this.prisma.user.update({
       where: { id: userId },
-      data: { interests },
+      data: {
+        interests: interestsList,
+      },
+    });
+  }
+
+  async removeInterests(userId: number, categoryId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { interests: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const category = await this.prisma.newsCategory.findUnique({
+      where: { id: categoryId },
+      select: { name: true },
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+    const interestsList = Array.isArray(user.interests)
+      ? user.interests.filter((id) => id !== categoryId)
+      : [];
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { interests: interestsList },
     });
   }
 }
