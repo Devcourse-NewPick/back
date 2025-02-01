@@ -1,8 +1,8 @@
 import {
   Controller,
   Get,
-  Post,
   Req,
+  Post,
   Res,
   UseGuards,
   UnauthorizedException,
@@ -48,68 +48,68 @@ export class AuthController {
       return res.status(401).json({ message: 'User validation failed' });
     }
 
-    const { accessToken, refreshToken } =
-      await this.authService.generateJwtTokens(user);
+    const accessToken = await this.authService.generateAccessToken(
+      user.id,
+      user.email,
+    );
+    const refreshToken = await this.authService.generateRefreshToken(user.id);
+
+    await this.authService.storeRefreshToken(
+      user.id,
+      accessToken,
+      refreshToken,
+    );
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 1000 * 60 * 60 * 24,
-    });
-
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.cookie('user_id', user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: 1000 * 60 * 60 * 24, // 1일
     });
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     return res.send(`
-      <html>
-        <body>
-          <h1>OAuth Success</h1>
-          <p>Authentication successful. Closing window...</p>
-          <script>
-            try {
-              const token = '${accessToken}';
-              const user = ${JSON.stringify(user)
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'")};
-
-              if (window.opener) {
-                window.opener.postMessage({ type: 'oauthSuccess', token, user }, '${frontendUrl}');
-              } else if (window.parent) {
-                window.parent.postMessage({ type: 'oauthSuccess', token, user }, '${frontendUrl}');
-              }
-
-              document.body.innerHTML += '<h3>Information sent to parent window.</h3>';
-              setTimeout(() => window.close(), 2000);
-            } catch (err) {}
-          </script>
-        </body>
-      </html>
+      <script>
+        try {
+          const user = ${JSON.stringify({
+            email: user.email,
+            username: user.username,
+            profileImg: user.profileImg,
+          })
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")};
+    
+          if (window.opener) {
+            window.opener.postMessage({ type: 'oauthSuccess', user }, '${frontendUrl}');
+          } else if (window.parent) {
+            window.parent.postMessage({ type: 'oauthSuccess', user }, '${frontendUrl}');
+          }
+          
+          window.close();
+        } catch (err) {}
+      </script>
     `);
   }
 
   @Get('refresh')
+  @UseGuards(AuthGuard('jwt'))
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = req.cookies['refresh_token'];
+    const user = req.user as { id: number; email: string };
+    const userId = user?.id;
+
+    // DB에서 refresh_token 가져오기
+    const refreshToken = await this.authService.getStoredRefreshToken(userId);
+
     if (!refreshToken) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const newAccessToken =
-      await this.authService.refreshAccessToken(refreshToken);
+    const newAccessToken = await this.authService.refreshAccessToken(
+      userId,
+      refreshToken,
+    );
+
     if (!newAccessToken) {
       return res.status(401).json({ message: 'Invalid refresh token' });
     }
@@ -118,23 +118,29 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 1000,
+      maxAge: 60 * 60 * 1000, // 1시간
     });
 
     return res.json({ message: 'Token refreshed' });
   }
 
   @Post('logout')
+  @UseGuards(AuthGuard('jwt')) // JWT 인증 적용
   async logout(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = req.cookies['refresh_token'];
-    if (!refreshToken) {
-      return res.status(400).json({ message: 'No refresh token found' });
+    const user = req.user as { id: number };
+    if (!user?.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    await this.authService.removeRefreshToken(refreshToken);
+    // DB에서 해당 사용자의 refresh_token 삭제
+    await this.authService.removeRefreshToken(user.id);
 
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+    // 쿠키에서 access_token 제거
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
 
     return res.status(200).json({ message: 'Logged out successfully' });
   }

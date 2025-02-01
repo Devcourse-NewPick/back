@@ -23,7 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     return {
-      userId: payload.sub,
+      id: payload.sub, // 수정됨
       email: payload.email,
       username: payload.username,
       profileImg: payload.profileImg,

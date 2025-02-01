@@ -5,7 +5,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service'; // MysqlPrismaService 사용
-import { NewsCategory } from '@prisma/client';
 @Injectable()
 export class SubscriberService {
   constructor(
@@ -143,7 +142,8 @@ export class SubscriberService {
   async getSubscribers(): Promise<
     {
       email: string;
-      interests: NewsCategory[];
+      interests: number[];
+      name: string;
     }[]
   > {
     const recievers = await this.prisma.subscriber.findMany({
@@ -151,7 +151,7 @@ export class SubscriberService {
         user: true,
       },
       where: {
-        endAt: null,
+        status: 'active',
       },
     });
 
@@ -161,7 +161,8 @@ export class SubscriberService {
     const subscribersWithInterest = recievers.map((reciever) => {
       return {
         email: reciever.user.email,
-        interests: reciever.user.interests as NewsCategory[],
+        interests: reciever.user.interests as number[],
+        name: reciever.user.username,
       };
     });
 

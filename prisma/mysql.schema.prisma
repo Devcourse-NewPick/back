@@ -47,7 +47,7 @@ model Subscriber {
 // OAuthToken 모델
 model OAuthToken {
   id           Int      @id @default(autoincrement())
-  userId       Int
+  userId       Int      @unique
   accessToken  String   @db.Text
   refreshToken String   @db.Text
   expiresAt    DateTime
@@ -156,3 +156,15 @@ model Bookmark {
 
   @@map("bookmarks")
 }
+
+// ScheduleConfig 모델
+model ScheduleConfig {
+  id        Int      @id @default(autoincrement())
+  hour      Int      @default(8)
+  day       Int      @default(1)  // 1: 월요일, 2: 화요일, 3: 수요일, 4: 목요일, 5: 금요일, 6: 토요일, 0: 일요일
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("schedule_configs")
+}
+

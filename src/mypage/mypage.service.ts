@@ -44,6 +44,13 @@ export class MyPageService {
             imageUrl: true, // news-img 추가
             content: true, // news-summary 추가 (100자 제한)
             createdAt: true, // news-createdAt 추가
+            category: {
+              // 카테고리 정보 추가
+              select: {
+                id: true,
+                name: true, // 카테고리 이름 추가
+              },
+            },
           },
         },
       },
@@ -55,12 +62,18 @@ export class MyPageService {
 
     return bookmarks.map((bookmark) => ({
       id: bookmark.newsletter?.id,
-      newsTitle: bookmark.newsletter?.title, // 추가
-      newsImg: bookmark.newsletter?.imageUrl || null, // 추가 (이미지 없으면 null)
-      newsCreatedAt: bookmark.newsletter?.createdAt, // 추가 (뉴스 생성 날짜)
+      newsTitle: bookmark.newsletter?.title,
+      newsImg: bookmark.newsletter?.imageUrl || null,
+      newsCreatedAt: bookmark.newsletter?.createdAt,
       newsSummary: bookmark.newsletter?.content
-        ? bookmark.newsletter.content.substring(0, 100) + '...' // 추가 (100자 요약)
+        ? bookmark.newsletter.content.substring(0, 100) + '...'
         : null,
+      category: bookmark.newsletter?.category
+        ? {
+            id: bookmark.newsletter.category.id,
+            name: bookmark.newsletter.category.name,
+          }
+        : null, // 카테고리 정보 포함
     }));
   }
 
@@ -117,30 +130,59 @@ export class MyPageService {
     return user.interests || [];
   }
 
-  /**
-   * 관심사 수정
-   * @param userId 사용자 ID
-   * @param interests 관심사 배열
-   */
-  async updateInterests(userId: number, interests: string[]) {
+  async addInterests(userId: number, categoryId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+    });
+    const categories = await this.prisma.newsCategory.findUnique({
+      where: {
+        id: categoryId,
+      },
     });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} does not exist.`);
     }
-
-    const validInterests = ['정치', '사회', 'IT'];
-
-    // 유효하지 않은 관심사 필터링
-    if (interests.some((interest) => !validInterests.includes(interest))) {
-      throw new Error('Invalid interests provided');
+    if (!categories) {
+      throw new NotFoundException('Some category IDs are invalid');
     }
+    if (Array.isArray(user.interests) && user.interests.includes(categoryId)) {
+      throw new NotFoundException('Category already exists');
+    }
+    const interestsList = Array.isArray(user.interests)
+      ? [...user.interests, categoryId]
+      : [categoryId];
 
     return this.prisma.user.update({
       where: { id: userId },
-      data: { interests },
+      data: {
+        interests: interestsList,
+      },
+    });
+  }
+
+  async removeInterests(userId: number, categoryId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { interests: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const category = await this.prisma.newsCategory.findUnique({
+      where: { id: categoryId },
+      select: { name: true },
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+    const interestsList = Array.isArray(user.interests)
+      ? user.interests.filter((id) => id !== categoryId)
+      : [];
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { interests: interestsList },
     });
   }
 }
