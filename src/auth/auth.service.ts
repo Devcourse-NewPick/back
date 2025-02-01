@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 
@@ -35,61 +35,57 @@ export class AuthService {
     return user;
   }
 
-  async generateAccessToken(userId: number, email: string) {
-    return this.jwtService.sign({ sub: userId, email }, { expiresIn: '1h' });
+  async generateAccessToken(userId: number) {
+    return this.jwtService.sign({ sub: userId }, { expiresIn: '180m' }); // 3시간으로 변경입니다.
   }
 
   async generateRefreshToken(userId: number) {
     return this.jwtService.sign(
       { sub: userId },
-      { expiresIn: '7d', secret: process.env.JWT_REFRESH_SECRET },
+      { expiresIn: '12h', secret: process.env.JWT_REFRESH_SECRET }, // 12시간으로 변경입니다.
     );
   }
 
-  async storeRefreshToken(
-    userId: number,
-    accessToken: string,
-    refreshToken: string,
-  ) {
+  async storeRefreshToken(userId: number, refreshToken: string) {
     await this.prisma.oAuthToken.upsert({
-      where: { userId: userId },
+      where: { userId },
       update: {
         refreshToken,
-        accessToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12시간
       },
       create: {
-        userId: userId,
-        accessToken,
+        user: { connect: { id: userId } },
+        accessToken: '',
         refreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12시간 후 만료
       },
     });
   }
 
-  async getStoredRefreshToken(userId: number) {
-    const storedToken = await this.prisma.oAuthToken.findUnique({
-      where: { userId: userId },
-      select: { refreshToken: true },
-    });
-
-    return storedToken?.refreshToken || null;
+  /**
+   * 🔹 만료된 Access Token에서도 userId(sub)를 추출하는 메서드
+   */
+  decodeExpiredAccessToken(token: string) {
+    try {
+      return this.jwtService.decode(token) as { sub: number } | null;
+    } catch (error) {
+      return null;
+    }
   }
 
-  async refreshAccessToken(userId: number, refreshToken: string) {
+  async verifyRefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<boolean> {
     const storedToken = await this.prisma.oAuthToken.findUnique({
-      where: { userId: userId },
+      where: { userId },
       select: { refreshToken: true },
     });
 
-    if (!storedToken || storedToken.refreshToken !== refreshToken) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    return this.generateAccessToken(userId, '');
+    return storedToken?.refreshToken === refreshToken;
   }
 
   async removeRefreshToken(userId: number) {
-    await this.prisma.oAuthToken.deleteMany({ where: { userId: userId } });
+    await this.prisma.oAuthToken.deleteMany({ where: { userId } });
   }
 }

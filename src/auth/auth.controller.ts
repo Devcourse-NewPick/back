@@ -11,13 +11,6 @@ import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 
-interface OAuthUser {
-  googleSub: string;
-  email: string;
-  username: string;
-  profileImg: string | null;
-}
-
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -35,7 +28,7 @@ export class AuthController {
       throw new UnauthorizedException('OAuth user not found');
     }
 
-    const { googleSub, email, username, profileImg } = req.user as OAuthUser;
+    const { googleSub, email, username, profileImg } = req.user as any;
 
     const user = await this.authService.validateOrCreateGoogleUser(
       googleSub,
@@ -48,23 +41,23 @@ export class AuthController {
       return res.status(401).json({ message: 'User validation failed' });
     }
 
-    const accessToken = await this.authService.generateAccessToken(
-      user.id,
-      user.email,
-    );
+    const accessToken = await this.authService.generateAccessToken(user.id);
     const refreshToken = await this.authService.generateRefreshToken(user.id);
 
-    await this.authService.storeRefreshToken(
-      user.id,
-      accessToken,
-      refreshToken,
-    );
+    await this.authService.storeRefreshToken(user.id, refreshToken);
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 1000 * 60 * 60 * 24, // 1일
+      maxAge: 3 * 60 * 60 * 1000, // 3시간
+    });
+
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 12 * 60 * 60 * 1000, // 12시간
     });
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -92,54 +85,88 @@ export class AuthController {
     `);
   }
 
+  /**
+   * 🔹 Refresh Token을 사용하여 새로운 Access Token 발급
+   * 🔹 AuthGuard를 제거하여 만료된 Access Token도 허용
+   */
   @Get('refresh')
-  @UseGuards(AuthGuard('jwt'))
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const user = req.user as { id: number; email: string };
-    const userId = user?.id;
-
-    // DB에서 refresh_token 가져오기
-    const refreshToken = await this.authService.getStoredRefreshToken(userId);
+    const refreshToken = req.cookies['refresh_token'];
+    const accessToken = req.cookies['access_token'];
 
     if (!refreshToken) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res
+        .status(401)
+        .json({ message: 'Unauthorized - No refresh token found' });
     }
 
-    const newAccessToken = await this.authService.refreshAccessToken(
-      userId,
-      refreshToken,
-    );
+    try {
+      let userId: number;
+      try {
+        const decoded = this.authService.decodeExpiredAccessToken(accessToken);
+        userId = decoded?.sub;
+      } catch (err) {
+        return res
+          .status(401)
+          .json({ message: 'Unauthorized - Invalid access token' });
+      }
 
-    if (!newAccessToken) {
-      return res.status(401).json({ message: 'Invalid refresh token' });
+      // Refresh Token 검증
+      const isValid = await this.authService.verifyRefreshToken(
+        userId,
+        refreshToken,
+      );
+      if (!isValid) {
+        return res
+          .status(401)
+          .json({ message: 'Unauthorized - Invalid refresh token' });
+      }
+
+      // 새로운 Access Token 발급
+      const newAccessToken = await this.authService.generateAccessToken(userId);
+
+      res.cookie('access_token', newAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 3 * 60 * 60 * 1000, // 3시간
+      });
+
+      return res.json({
+        message: 'Token refreshed',
+        accessToken: newAccessToken,
+      });
+    } catch (error) {
+      return res
+        .status(401)
+        .json({ message: 'Unauthorized - Token verification failed' });
     }
-
-    res.cookie('access_token', newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 1000, // 1시간
-    });
-
-    return res.json({ message: 'Token refreshed' });
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard('jwt')) // JWT 인증 적용
+  @UseGuards(AuthGuard('jwt'))
   async logout(@Req() req: Request, @Res() res: Response) {
     const user = req.user as { id: number };
     if (!user?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // DB에서 해당 사용자의 refresh_token 삭제
-    await this.authService.removeRefreshToken(user.id);
+    try {
+      await this.authService.removeRefreshToken(user.id);
+    } catch (error) {
+      return res.status(500).json({ message: 'Error removing refresh token' });
+    }
 
-    // 쿠키에서 access_token 제거
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+    });
+
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });
