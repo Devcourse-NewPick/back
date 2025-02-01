@@ -5,13 +5,11 @@ const prisma = new MysqlPrismaService();
 async function generateCategory() {
   const categories = [
     'IT',
+    '정치',
     '경제',
     '사회',
-    '세계',
     '생활',
-    '연애',
-    '건강',
-    '교육',
+    '세계',
   ];
 
   for (const category of categories) {
