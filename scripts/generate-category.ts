@@ -22,7 +22,7 @@ async function generateCategory() {
     });
   }
 
-  console.log(`${categories.length}개의 카테고리가 생성되었습니다.`);
+  console.log(`데이터베이스에 ${categories.length}개의 카테고리가 자동으로 설정됩니다.`);
 }
 
 generateCategory();
