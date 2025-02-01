@@ -63,7 +63,7 @@ export class AuthService {
   }
 
   /**
-   * 🔹 만료된 Access Token에서도 userId(sub)를 추출하는 메서드
+   * 만료된 Access Token에서도 userId(sub)를 추출하는 메서드
    */
   decodeExpiredAccessToken(token: string) {
     try {
