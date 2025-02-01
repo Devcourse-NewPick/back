@@ -70,33 +70,25 @@ export class AuthController {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     return res.send(`
-      <html>
-        <body>
-          <h1>OAuth Success</h1>
-          <p>Authentication successful. Closing window...</p>
-          <script>
-            try {
-              const token = '${accessToken}';
-              const user = ${JSON.stringify({
-                email: user.email,
-                username: user.username,
-                profileImg: user.profileImg,
-              })
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'")};
-
-              if (window.opener) {
-                window.opener.postMessage({ type: 'oauthSuccess', token, user }, '${frontendUrl}');
-              } else if (window.parent) {
-                window.parent.postMessage({ type: 'oauthSuccess', token, user }, '${frontendUrl}');
-              }
-
-              document.body.innerHTML += '<h3>Information sent to parent window.</h3>';
-              setTimeout(() => window.close(), 2000);
-            } catch (err) {}
-          </script>
-        </body>
-      </html>
+      <script>
+        try {
+          const user = ${JSON.stringify({
+            email: user.email,
+            username: user.username,
+            profileImg: user.profileImg,
+          })
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")};
+    
+          if (window.opener) {
+            window.opener.postMessage({ type: 'oauthSuccess', user }, '${frontendUrl}');
+          } else if (window.parent) {
+            window.parent.postMessage({ type: 'oauthSuccess', user }, '${frontendUrl}');
+          }
+          
+          window.close();
+        } catch (err) {}
+      </script>
     `);
   }
 
