@@ -68,7 +68,7 @@ export class AuthService {
   decodeExpiredAccessToken(token: string) {
     try {
       return this.jwtService.decode(token) as { sub: number } | null;
-    } catch (error) {
+    } catch (err) {
       return null;
     }
   }

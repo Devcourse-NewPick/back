@@ -86,8 +86,8 @@ export class AuthController {
   }
 
   /**
-   * 🔹 Refresh Token을 사용하여 새로운 Access Token 발급
-   * 🔹 AuthGuard를 제거하여 만료된 Access Token도 허용
+   * Refresh Token을 사용하여 새로운 Access Token 발급
+   * authGuard를 제거하여 만료된 Access Token도 허용
    */
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
@@ -136,7 +136,7 @@ export class AuthController {
         message: 'Token refreshed',
         accessToken: newAccessToken,
       });
-    } catch (error) {
+    } catch (err) {
       return res
         .status(401)
         .json({ message: 'Unauthorized - Token verification failed' });
