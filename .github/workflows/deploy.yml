@@ -41,7 +41,6 @@ jobs:
             echo "✅ Dependencies installed"
             
             echo "🌈 Migrating and generating Prisma client..."
-            npx prisma migrate deploy --schema=prisma/mysql.schema.prisma
             npx prisma generate --schema=prisma/mysql.schema.prisma
             echo "✅ Prisma migration and generation complete"
             
