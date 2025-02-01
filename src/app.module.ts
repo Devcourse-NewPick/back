@@ -23,7 +23,7 @@ import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MemoryMonitorService } from './monitoring/memory.monitor';
 import { BasicRepositoryModule } from './repository/module';
-import { CommonResponseInterceptor } from './common/response.interceptor';
+// import { CommonResponseInterceptor } from './common/response.interceptor';
 
 @Module({
   imports: [
@@ -66,3 +66,5 @@ import { CommonResponseInterceptor } from './common/response.interceptor';
   ], // 서비스 등록
 })
 export class AppModule {}
+
+// 추후 JWTGuard 등록 필요.

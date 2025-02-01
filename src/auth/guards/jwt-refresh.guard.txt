@@ -1,0 +1,74 @@
+import {
+  Injectable,
+  ExecutionContext,
+  UnauthorizedException,
+  CanActivate,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { AuthService } from '../auth.service';
+import { Request, Response } from 'express';
+
+@Injectable()
+export class JwtRefreshGuard implements CanActivate {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly authService: AuthService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
+
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+      throw new UnauthorizedException('No token provided');
+    }
+
+    const accessToken = authHeader.split(' ')[1];
+
+    try {
+      // Access Token 검증 (만료 허용)
+      const decoded = this.jwtService.verify(accessToken, {
+        ignoreExpiration: true,
+      });
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (decoded.exp < currentTime) {
+        throw new Error('TokenExpiredError'); // 강제로 만료 예외 발생
+      }
+
+      request.user = { id: decoded.sub };
+      return true;
+    } catch (err) {
+      if (err.message === 'TokenExpiredError') {
+        const refreshToken = request.cookies['refresh_token'];
+
+        if (!refreshToken) {
+          throw new UnauthorizedException('Refresh token missing');
+        }
+
+        // Refresh Token 검증 및 새로운 Access Token 발급
+        try {
+          const user = await this.authService.verifyRefreshToken(refreshToken);
+          const newAccessToken = await this.authService.generateAccessToken(
+            user.id,
+          );
+
+          // 새 Access Token을 응답 쿠키로 설정
+          response.cookie('access_token', newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 1000, // 1시간
+          });
+
+          request.user = { id: user.id }; // `req.user` 업데이트
+          return true;
+        } catch (refreshError) {
+          throw new UnauthorizedException('Invalid refresh token');
+        }
+      }
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+}
