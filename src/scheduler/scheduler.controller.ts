@@ -83,7 +83,10 @@ export class SchedulerController {
     this.logger.log(`구독자 목록을 가져왔습니다.${recievers}`);
     const newsletters = await this.newsletterRepository.getNewsletter(0, 3);
     const mail = await this.mailService.sendBulkMailWithMultipleNewsletter(
-      recievers,
+      recievers.map((reciever) => ({
+        email: reciever.email,
+        interests: reciever.interests.map((interest) => interest.name),
+      })),
       newsletters,
       '테스트 입니다. \n 이곳에는 요약 뉴스가 들어갑니다.',
     );

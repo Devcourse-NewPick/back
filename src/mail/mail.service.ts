@@ -69,7 +69,7 @@ export class MailService {
   }
 
   async sendBulkMailWithMultipleNewsletter(
-    subscribers: { email: string; interests: NewsCategory[] }[],
+    subscribers: { email: string; interests: string[] }[],
     newsletterArray: Newsletter[],
     basicIntroductionAsHTML?: string,
   ) {
@@ -86,7 +86,7 @@ export class MailService {
         subscribers.map(async (subscriber) => {
           const filteredNewsletter = newsletterArray.filter((newsletter) =>
             subscriber.interests.some(
-              (interest) => interest.id === newsletter.categoryId,
+              (interest) => parseInt(interest, 10) === newsletter.categoryId,
             ),
           );
           const newsletterWithTemplate = filteredNewsletter.map((newsletter) =>

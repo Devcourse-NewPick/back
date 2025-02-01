@@ -95,15 +95,15 @@ export class SchedulerService {
       this.logger.error(`AI 요약 실패: ${error.message}`);
     }
   }
-  @Cron(CronExpression.EVERY_5_SECONDS)
-  async sendAiSummary() {
-    const subscribers = await this.subscriberService.getSubscribers();
-    if (subscribers.length === 0) {
-      throw new NotFoundException('구독자가 없습니다.');
-      return;
-    }
-    this.logger.debug(subscribers[0]);
-  }
+  // @Cron(CronExpression.EVERY_5_SECONDS)
+  // async sendAiSummary() {
+  //   const subscribers = await this.subscriberService.getSubscribers();
+  //   if (subscribers.length === 0) {
+  //     throw new NotFoundException('구독자가 없습니다.');
+  //     return;
+  //   }
+  //   this.logger.debug(subscribers[0]);
+  // }
 
   // 주간 요약 뉴스 발송
   @Cron(CronExpression.EVERY_MONDAY_AT_8AM, {
@@ -132,7 +132,10 @@ export class SchedulerService {
         await this.htmlFormatterService.formatHtml(basicIntroduction);
 
       const result = await this.mailService.sendBulkMailWithMultipleNewsletter(
-        subscribers,
+        subscribers.map((subscriber) => ({
+          email: subscriber.email,
+          interests: subscriber.interests.map((interest) => interest.name),
+        })),
         newsletters,
         basicIntroductionAsHTML,
       );

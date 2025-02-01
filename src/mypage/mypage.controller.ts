@@ -11,7 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { MyPageService } from './mypage.service';
 
 @Controller('mypage')
-@UseGuards(AuthGuard('jwt')) // JWT 인증 적용
+// @UseGuards(AuthGuard('jwt')) // JWT 인증 적용
 export class MyPageController {
   constructor(private readonly myPageService: MyPageService) {}
 
@@ -62,19 +62,31 @@ export class MyPageController {
   }
 
   /**
-   * 관심사 수정
+   * 관심사 더하긴
    */
   @Patch('interests')
-  async updateInterests(@Req() req, @Body('interests') interests: string[]) {
-    const userId = this.validateAndParseUserId(req.user?.id);
-    const validInterests = ['정치', '사회', 'IT'];
+  async addInterests(@Body() data: { categoryId: number; userId: number }) {
+    const categoryId = Number(data.categoryId);
+    const userId = this.validateAndParseUserId(data.userId);
+    const changedInterests = await this.myPageService.addInterests(
+      userId,
+      categoryId,
+    );
+    return changedInterests;
+  }
 
-    // 유효성 검사
-    if (!interests || interests.some((interest) => !validInterests.includes(interest))) {
-      throw new UnauthorizedException('Invalid interests provided');
-    }
-
-    return this.myPageService.updateInterests(userId, interests);
+  /**
+   * 관심사 삭제
+   */
+  @Patch('interests/remove')
+  async removeInterests(@Body() data: { categoryId: number; userId: number }) {
+    const categoryId = Number(data.categoryId);
+    const userId = this.validateAndParseUserId(data.userId);
+    const changedInterests = await this.myPageService.removeInterests(
+      userId,
+      categoryId,
+    );
+    return changedInterests;
   }
 
   /**
