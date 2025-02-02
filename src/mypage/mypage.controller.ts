@@ -6,6 +6,7 @@ import {
   Body,
   UnauthorizedException,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { MyPageService } from './mypage.service';
@@ -56,32 +57,38 @@ export class MyPageController {
    * 관심사 조회
    */
   @Get('interests')
-  async getInterests(@Body() data: { userId: number }) {
-    const userId = this.validateAndParseUserId(data.userId);
+  async getInterests(@Req() req) {
+    const userId = this.validateAndParseUserId(req.user?.id);
     return this.myPageService.getInterests(userId);
   }
 
   /**
-   * 관심사 더하긴
+   * 관심사 수정 (덮어쓰기)
+   */
+  @Put('interests')
+  async updateInterests(@Req() req, @Body() data: { interests: number[] }) {
+    const userId = this.validateAndParseUserId(req.user?.id);
+    return this.myPageService.updateInterests(userId, data.interests);
+  }
+
+  /**
+   * 관심사 추가
    */
   @Patch('interests')
-  async addInterests(@Body() data: { categoryId: number; userId: number }) {
-    const categoryId = Number(data.categoryId);
-    const userId = this.validateAndParseUserId(data.userId);
-    const changedInterests = await this.myPageService.addInterests(
-      userId,
-      categoryId,
-    );
-    return changedInterests;
+  async addInterests(@Req() req, @Body() data: { interests: number[] }) {
+    console.log('📌 Interests:', data.interests); // 관심사 ID 목록 확인
+
+    const userId = this.validateAndParseUserId(req.user?.id);
+    return this.myPageService.addInterests(userId, data.interests);
   }
 
   /**
    * 관심사 삭제
    */
   @Patch('interests/remove')
-  async removeInterests(@Body() data: { categoryId: number; userId: number }) {
+  async removeInterests(@Req() req, @Body() data: { categoryId: number }) {
     const categoryId = Number(data.categoryId);
-    const userId = this.validateAndParseUserId(data.userId);
+    const userId = this.validateAndParseUserId(req.user?.id);
     const changedInterests = await this.myPageService.removeInterests(
       userId,
       categoryId,
