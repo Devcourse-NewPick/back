@@ -1,75 +1,91 @@
-name: Deploy to AWS EC2
+name: Deploy Application to EC2 Server
 
 on:
   push:
-    branches:
-      # 배포할 브랜치
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
-    name: Deploy to EC2
     runs-on: ubuntu-latest
-
     steps:
-      # 코드 체크아웃
-      - name: Checkout Repository
+      # 1️⃣ 리포지토리 체크아웃
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      # 코드 클론, 업데이트 및 빌드
-      - name: Clone, Update and Build Code
+      # 2️⃣ Node.js 및 패키지 설치
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+      # 3️⃣ 코드 업데이트 및 빌드
+      - name: Update code and build
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
+          username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          command_timeout: "10m"  # 빌드 시간을 고려해 타임아웃 증가
+          command_timeout: "10m"
           script: |
             echo "🔄 Updating code..."
-            cd ~/back || {
+            if [ ! -d "~/back" ]; then
               echo "📦 Cloning repository..."
               git clone https://github.com/Devcourse-NewPick/back.git ~/back
-              cd ~/back
-            }
-            git pull origin main
-            
+            fi
+            cd ~/back || exit 1
+            git fetch --all
+            git reset --hard origin/main
+            echo "✅ Code updated"
+
+            echo "🔑 Creating .env file..."
+            echo "PORT='${{ secrets.PORT }}'" | sudo tee ~/back/.env > /dev/null
+            echo "MYSQL_URL='${{ secrets.MYSQL_URL }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "MONGO_URL='${{ secrets.MONGO_URL }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "FRONTEND_URL='${{ secrets.FRONTEND_URL }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "JWT_SECRET='${{ secrets.JWT_SECRET }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "GOOGLE_REDIRECT_URI='${{ secrets.GOOGLE_REDIRECT_URI }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "SENTRY_DSN='${{ secrets.SENTRY_DSN }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "MAIL_USER='${{ secrets.MAIL_USER }}'" | sudo tee -a ~/back/.env > /dev/null
+            echo "MAIL_PASSWORD='${{ secrets.MAIL_PASSWORD }}'" | sudo tee -a ~/back/.env > /dev/null
+            sudo chown ${{ secrets.EC2_USER }}:${{ secrets.EC2_USER }} ~/back/.env
+            echo "✅ .env file created"
+
             echo "📦 Installing dependencies..."
             npm install
+            echo "✅ Dependencies installed"
             
-            echo "🛠️ Initializing schema..."
+            echo "🌈 Generating Prisma client..."
             npm run prisma:generate:mysql
+            npm run generate:category
+            echo "✅ Prisma generation complete"
             
             echo "🔨 Building project..."
             npm run build
-            
             echo "✅ Build process complete"
-
-      # 서비스 재시작
+      # 4️⃣ 서비스 재시작 및 동작 확인
       - name: Restart Service
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
+          username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           command_timeout: "3m"
           script: |
-            echo "🔄 Restarting service..."
-            if sudo systemctl is-active nestjs.service; then
+            if sudo systemctl is-active --quiet nestjs.service; then
+              echo "🔄 Restarting service..."
+              sudo systemctl restart nestjs.service
+            elif sudo systemctl is-failed --quiet nestjs.service; then
+              echo "⚠️ Service is in a failed state. Restarting..."
               sudo systemctl restart nestjs.service
             else
+              echo "🚀 Starting service..."
               sudo systemctl start nestjs.service
             fi
             echo "✅ Service restart complete"
 
-      # 배포 확인
-      - name: Verify Deployment
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          script: |
-            if sudo systemctl is-active nestjs.service; then
+            if sudo systemctl is-active --quiet nestjs.service; then
               echo "🚀 Deployment successful! Service is running."
             else
               echo "❌ Service failed to start"

@@ -5,13 +5,11 @@ const prisma = new MysqlPrismaService();
 async function generateCategory() {
   const categories = [
     'IT',
+    '정치',
     '경제',
     '사회',
-    '세계',
     '생활',
-    '연애',
-    '건강',
-    '교육',
+    '세계',
   ];
 
   for (const category of categories) {
@@ -24,7 +22,7 @@ async function generateCategory() {
     });
   }
 
-  console.log(`${categories.length}개의 카테고리가 생성되었습니다.`);
+  console.log(`데이터베이스에 ${categories.length}개의 카테고리가 자동으로 설정됩니다.`);
 }
 
 generateCategory();
