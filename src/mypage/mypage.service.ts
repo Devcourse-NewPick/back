@@ -130,34 +130,86 @@ export class MyPageService {
     return user.interests || [];
   }
 
-  async addInterests(userId: number, categoryId: number) {
+  async addInterests(userId: number, categoryIds: number[]) {
+    if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
+      throw new NotFoundException('No categories provided.');
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-    });
-    const categories = await this.prisma.newsCategory.findUnique({
-      where: {
-        id: categoryId,
-      },
+      select: { interests: true },
     });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} does not exist.`);
     }
-    if (!categories) {
-      throw new NotFoundException('Some category IDs are invalid');
+
+    // 카테고리 ID가 유효한지 확인 (findMany 사용)
+    const validCategories = await this.prisma.newsCategory.findMany({
+      where: { id: { in: categoryIds } },
+      select: { id: true },
+    });
+
+    const validCategoryIds = validCategories.map((cat) => cat.id);
+
+    if (validCategoryIds.length === 0) {
+      throw new NotFoundException('No valid categories found.');
     }
-    if (Array.isArray(user.interests) && user.interests.includes(categoryId)) {
-      throw new NotFoundException('Category already exists');
-    }
-    const interestsList = Array.isArray(user.interests)
-      ? [...user.interests, categoryId]
-      : [categoryId];
+
+    // 현재 관심사 중복 제거
+    const currentInterests = Array.isArray(user.interests)
+      ? user.interests
+      : [];
+    const newInterests = [
+      ...new Set([...currentInterests, ...validCategoryIds]),
+    ];
+
+    console.log('New interests:', newInterests);
 
     return this.prisma.user.update({
       where: { id: userId },
-      data: {
-        interests: interestsList,
-      },
+      data: { interests: newInterests },
+      select: { interests: true },
+    });
+  }
+
+  /**
+   * 관심사 수정 (덮어쓰기)
+   * @param userId 사용자 ID
+   * @param categoryIds 새로운 관심사 목록
+   */
+  async updateInterests(userId: number, categoryIds: number[]) {
+    if (!Array.isArray(categoryIds)) {
+      throw new NotFoundException('Invalid category list.');
+    }
+
+    // 유저 조회
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { interests: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} does not exist.`);
+    }
+
+    // 유효한 카테고리인지 확인
+    const validCategories = await this.prisma.newsCategory.findMany({
+      where: { id: { in: categoryIds } },
+      select: { id: true },
+    });
+
+    const validCategoryIds = validCategories.map((cat) => cat.id);
+
+    if (validCategoryIds.length !== categoryIds.length) {
+      throw new NotFoundException('Some categories are invalid.');
+    }
+
+    // 기존 관심사를 완전히 덮어쓰고 업데이트된 관심사 데이터만 반환
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { interests: validCategoryIds },
+      select: { interests: true },
     });
   }
 
@@ -183,6 +235,7 @@ export class MyPageService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { interests: interestsList },
+      select: { interests: true },
     });
   }
 }
