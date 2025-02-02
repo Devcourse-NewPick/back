@@ -10,10 +10,12 @@ import {
   UseInterceptors,
   Logger,
   NotFoundException,
+  ParseIntPipe,
+  ValidationPipe,
 } from '@nestjs/common';
 import { CategoryRepository } from './category.repository';
-import { Prisma } from '@prisma/client';
 import { CommonResponseInterceptor } from '../common/response.interceptor';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 @Controller('category')
 @UseInterceptors(CommonResponseInterceptor)
@@ -32,7 +34,9 @@ export class CategoryController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: number) {
+  async findById(
+    @Param('id', new ParseIntPipe({ errorHttpStatusCode: 400 })) id: number,
+  ) {
     this.logger.log(`findById: ${id}`);
     const category = await this.categoryRepository.findById(id);
     if (!category) {
@@ -45,7 +49,17 @@ export class CategoryController {
   }
 
   @Get('name/:name')
-  async findByName(@Param('name') name: string) {
+  async findByName(
+    @Param(
+      'name',
+      new ValidationPipe({
+        transform: false,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    )
+    name: string,
+  ) {
     this.logger.log(`findByName: ${name}`);
     const category = await this.categoryRepository.findByName(name);
     if (!category) {
@@ -58,13 +72,22 @@ export class CategoryController {
   }
 
   @Post()
-  async create(@Body() data: Prisma.NewsCategoryCreateInput) {
-    const category = await this.categoryRepository.findByName(data.name);
-    this.logger.log(`create: ${data.name}`);
+  async create(
+    @Body(
+      new ValidationPipe({
+        transform: false,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    )
+    dto: CreateCategoryDto,
+  ) {
+    const category = await this.categoryRepository.findByName(dto.name);
+    this.logger.log(`create: ${dto.name}`);
     if (category) {
       throw new BadRequestException('이미 존재하는 카테고리입니다.');
     }
-    const createdCategory = await this.categoryRepository.create(data);
+    const createdCategory = await this.categoryRepository.create(dto);
     this.logger.log(`create: ${createdCategory.id}`);
     return {
       data: createdCategory,
@@ -74,15 +97,22 @@ export class CategoryController {
 
   @Put(':id')
   async update(
-    @Param('id') id: number,
-    @Body() data: Prisma.NewsCategoryUpdateInput,
+    @Param('id', new ParseIntPipe({ errorHttpStatusCode: 400 })) id: number,
+    @Body(
+      new ValidationPipe({
+        transform: false,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    )
+    dto: CreateCategoryDto,
   ) {
     const category = await this.categoryRepository.findById(id);
     if (!category) {
       throw new NotFoundException('카테고리를 찾을 수 없습니다.');
     }
     this.logger.log(`update: ${id}`);
-    const updatedCategory = await this.categoryRepository.update(id, data);
+    const updatedCategory = await this.categoryRepository.update(id, dto);
     this.logger.log(`update: ${updatedCategory.id}`);
     return {
       data: updatedCategory,
@@ -91,7 +121,9 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: number) {
+  async delete(
+    @Param('id', new ParseIntPipe({ errorHttpStatusCode: 400 })) id: number,
+  ) {
     const category = await this.categoryRepository.findById(id);
     if (!category) {
       throw new NotFoundException('카테고리를 찾을 수 없습니다.');
