@@ -34,12 +34,21 @@ export class CommonResponseInterceptor implements NestInterceptor {
       }),
       catchError((error) => {
         const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+        let errorMessage = error.message;
+
+        // ValidationPipe 에러 처리
+        if (error.response && error.response.message) {
+          errorMessage = Array.isArray(error.response.message)
+            ? error.response.message
+            : [error.response.message];
+        }
+
         throw new HttpException(
           {
             statusCode: status,
             timestamp: new Date().toISOString(),
-            errorTitle: error.name,
-            errorMessage: error.message,
+            errorTitle: error.name || 'ValidationError',
+            errorMessage: errorMessage,
           },
           status,
         );

@@ -13,17 +13,33 @@ export class SubscriberService {
   ) {}
 
   /**
-   * 구독 시작
+   * 구독 시작 (관심사 업데이트 포함)
    * @param userId 사용자 ID
+   * @param interests 관심사 ID 배열
    */
-  async startSubscription(userId: number) {
-    // 유저 존재 여부 확인
+  async startSubscription(userId: number, interests: number[]) {
+    // 사용자 존재 여부 확인
     const userExists = await this.prisma.user.findUnique({
       where: { id: userId },
     });
-
     if (!userExists) {
       throw new NotFoundException(`User with ID ${userId} does not exist.`);
+    }
+
+    // interests 배열이 제공되었다면 유효한 카테고리인지 확인 후 사용자 관심사 업데이트
+    if (Array.isArray(interests) && interests.length > 0) {
+      const validCategories = await this.prisma.newsCategory.findMany({
+        where: { id: { in: interests } },
+        select: { id: true },
+      });
+      const validCategoryIds = validCategories.map((cat) => cat.id);
+      if (validCategoryIds.length !== interests.length) {
+        throw new NotFoundException('Some categories are invalid.');
+      }
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { interests: validCategoryIds },
+      });
     }
 
     // 중복 구독 방지
