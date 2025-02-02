@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
@@ -23,6 +23,7 @@ import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MemoryMonitorService } from './monitoring/memory.monitor';
 import { BasicRepositoryModule } from './repository/module';
+import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
 // import { CommonResponseInterceptor } from './common/response.interceptor';
 
 @Module({
@@ -65,6 +66,10 @@ import { BasicRepositoryModule } from './repository/module';
     MemoryMonitorService,
   ], // 서비스 등록
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ConfigLoggerMiddleware).forRoutes('*');
+  }
+}
 
 // 추후 JWTGuard 등록 필요.
