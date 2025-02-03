@@ -13,6 +13,8 @@ export class ConfigLoggerMiddleware implements NestMiddleware {
         path: req.path,
         status: res.statusCode,
         body: req.body,
+        params: req.params,
+        platform: req.headers['x-platform'],
       });
     });
 
