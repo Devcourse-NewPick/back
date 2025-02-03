@@ -51,6 +51,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       domain: '.newpick.site',
+      path: '/',
       maxAge: 3 * 60 * 60 * 1000, // 3시간
     });
 
@@ -59,6 +60,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       domain: '.newpick.site',
+      path: '/',
       maxAge: 12 * 60 * 60 * 1000, // 12시간
     });
 
