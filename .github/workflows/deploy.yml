@@ -26,7 +26,7 @@ jobs:
            echo "🔄 Updating code..."
            if [ -d "~/back" ]; then
              echo "🗑️ Removing existing repository..."
-             rm -rf ~/back
+             sudo rm -rf ~/back
            fi
            
            echo "📦 Cloning repository..."
