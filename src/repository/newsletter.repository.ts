@@ -10,14 +10,6 @@ export class NewsletterRepo {
     if (popular) {
       const orderBy = popular ? 'desc' : 'asc';
       return this.prisma.newsletter.findMany({
-        select: {
-          id: true,
-          title: true,
-          imageUrl: true,
-          categoryId: true,
-          viewcount: true,
-          createdAt: true,
-        },
         skip: offset,
         take: limit,
         orderBy: {
@@ -26,14 +18,6 @@ export class NewsletterRepo {
       });
     } else {
       return this.prisma.newsletter.findMany({
-        select: {
-          id: true,
-          title: true,
-          imageUrl: true,
-          categoryId: true,
-          viewcount: true,
-          createdAt: true,
-        },
         skip: offset,
         take: limit,
       });
