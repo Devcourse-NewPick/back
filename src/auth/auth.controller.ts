@@ -50,7 +50,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'newpick.site',
+      domain: '.newpick.site',
       path: '/',
       maxAge: 3 * 60 * 60 * 1000, // 3시간
     });
@@ -59,12 +59,12 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'newpick.site',
+      domain: '.newpick.site',
       path: '/',
       maxAge: 12 * 60 * 60 * 1000, // 12시간
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.newpick.site';
 
     return res.send(`
       <script>
@@ -123,7 +123,7 @@ export class AuthController {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        domain: 'newpick.site',
+        domain: '.newpick.site',
         path: '/',
         maxAge: 3 * 60 * 60 * 1000,
       });
@@ -132,7 +132,7 @@ export class AuthController {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        domain: 'newpick.site',
+        domain: '.newpick.site',
         path: '/',
         maxAge: 12 * 60 * 60 * 1000,
       });
@@ -169,7 +169,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'newpick.site',
+      domain: '.newpick.site',
       path: '/',
     });
 
@@ -177,7 +177,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'newpick.site',
+      domain: '.newpick.site',
       path: '/',
     });
 
