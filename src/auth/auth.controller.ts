@@ -171,6 +171,7 @@ export class AuthController {
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
+      expires: new Date(0),
     });
 
     res.clearCookie('refresh_token', {
@@ -179,6 +180,7 @@ export class AuthController {
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
+      expires: new Date(0),
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });
