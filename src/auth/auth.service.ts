@@ -94,8 +94,14 @@ export class AuthService {
     return storedToken?.refreshToken === refreshToken;
   }
 
-  async removeRefreshToken(userId: number) {
-    await this.prisma.oAuthToken.deleteMany({ where: { userId } });
+  async removeRefreshToken(userId: number): Promise<number> {
+    const result = await this.prisma.oAuthToken.deleteMany({
+      where: { userId },
+    });
+    console.log(
+      `Deleted ${result.count} refresh tokens for user ID: ${userId}`,
+    );
+    return result.count; // 삭제된 토큰 개수 반환 확인용....하..
   }
 
   async verifyAndDecodeRefreshToken(
