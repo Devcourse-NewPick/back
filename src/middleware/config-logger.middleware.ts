@@ -14,7 +14,8 @@ export class ConfigLoggerMiddleware implements NestMiddleware {
         status: res.statusCode,
         body: req.body,
         params: req.params,
-        platform: req.headers['x-platform'],
+        userAgent: req.headers['user-agent'],
+        ip: req.ip,
       });
     });
 

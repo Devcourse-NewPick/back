@@ -1,15 +1,18 @@
+import './instruments';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser'; // 쿠키파서 추가(리프레시토큰용)
-import './instruments';
 
 async function bootstrap() {
-  // Nest 앱 생성
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
-  // ConfigService 가져오기
-  const configService: ConfigService = app.get(ConfigService);
+  // 환경변수 확인
+  console.log('Environment variables loaded:', {
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    NODE_ENV: process.env.NODE_ENV,
+  });
 
   // 환경 변수 및 기본값 설정
   const frontendUrl: string = configService.get<string>('FRONTEND_URL');

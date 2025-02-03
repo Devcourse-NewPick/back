@@ -31,8 +31,9 @@ import { CoopMiddleware } from './middleware/coop.middleware';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env', // 환경 변수 파일 설정
+      envFilePath: '.env',
     }),
+    SentryModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_URL), // MongoDB 연결
     CrawlingModule, // 크롤링 모듈
     SchedulerModule, // 스케줄러 모듈
@@ -46,7 +47,6 @@ import { CoopMiddleware } from './middleware/coop.middleware';
     UserModule, // 유저 모듈
     MailModule, // 메일 모듈
     CategoryModule, // 카테고리 모듈
-    SentryModule.forRoot(),
     ScheduleModule.forRoot(),
     BasicRepositoryModule,
   ],

@@ -24,6 +24,7 @@ export class OpenAiService {
   async summarizeText(
     news: CrawledNews[],
     categoryId: number,
+    test?: boolean,
   ): Promise<{
     summary: string;
     openai: any;
@@ -54,7 +55,7 @@ export class OpenAiService {
 
       await this.prisma.aiProcessLog.create({
         data: {
-          newsId: newslinks,
+          newsId: test ? 'test' : newslinks,
           processType: 'summarization',
           result: summary,
           duration: duration,
@@ -67,6 +68,9 @@ export class OpenAiService {
       const title = await this.createTitleService.createTitle(summary);
       const html = await this.htmlFormatterService.formatHtml(summary);
 
+      if (test) {
+        return { summary, openai: response, categoryId, newsletter: null };
+      }
       const newsletter = await this.createNewsletterService.createNewsletter(
         title,
         summary,
@@ -82,7 +86,7 @@ export class OpenAiService {
       const newsIds = news.map((item) => item._id).toString();
       await this.prisma.aiProcessLog.create({
         data: {
-          newsId: newsIds,
+          newsId: test ? 'test' : newsIds,
           processType: 'summarization',
           result: error.message,
           duration: duration,

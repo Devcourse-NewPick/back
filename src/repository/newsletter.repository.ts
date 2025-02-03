@@ -6,9 +6,45 @@ import { Prisma, Newsletter } from '@prisma/client';
 export class NewsletterRepo {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
-  async getNewsletter(offset: number, limit: number, popular?: boolean) {
-    if (popular) {
-      const orderBy = popular ? 'desc' : 'asc';
+  async getNewsletterList(offset: number, limit: number, trend?: boolean) {
+    if (trend) {
+      const orderBy = trend ? 'desc' : 'asc';
+      return this.prisma.newsletter.findMany({
+        select: {
+          id: true,
+          title: true,
+          imageUrl: true,
+          categoryId: true,
+          viewcount: true,
+          createdAt: true,
+          content: true,
+        },
+        skip: offset,
+        take: limit,
+        orderBy: {
+          viewcount: orderBy,
+        },
+      });
+    } else {
+      return this.prisma.newsletter.findMany({
+        select: {
+          id: true,
+          title: true,
+          imageUrl: true,
+          categoryId: true,
+          viewcount: true,
+          createdAt: true,
+          content: true,
+        },
+        skip: offset,
+        take: limit,
+      });
+    }
+  }
+
+  async getNewsletter(offset: number, limit: number, trend?: boolean) {
+    if (trend) {
+      const orderBy = trend ? 'desc' : 'asc';
       return this.prisma.newsletter.findMany({
         skip: offset,
         take: limit,
@@ -114,7 +150,7 @@ export class NewsletterRepo {
    * 모든 카테고리에 대해 어제 작성된 뉴스레터가 존재하는 카테고리별로
    * 가장 최근의 뉴스레터 한 건씩 조회
    */
-  async getNewslettersFromYesterdayForAllCategories(): Promise<Newsletter[]> {
+  async getNewslettersFromYesterdayForAllCategories() {
     const { start, end } = this.getYesterdayRange();
 
     // 어제 생성된 뉴스레터가 있는 각 카테고리의 목록을 distinct 하게 조회
