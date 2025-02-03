@@ -95,26 +95,28 @@ export class AuthController {
    */
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
+    console.log('Received Cookies:', req.cookies); // 요청된 쿠키 확인
+
     const refreshToken = req.cookies['refresh_token'];
 
     if (!refreshToken) {
+      console.log('No Refresh Token Found');
       return res
         .status(401)
         .json({ message: 'Unauthorized - No refresh token found' });
     }
 
     try {
-      // AuthService를 통해 refreshToken 검증
       const userId =
         await this.authService.verifyAndDecodeRefreshToken(refreshToken);
 
       if (!userId) {
+        console.log('Invalid Refresh Token');
         return res
           .status(401)
           .json({ message: 'Unauthorized - Invalid refresh token' });
       }
 
-      // 새로운 Access Token 발급
       const newAccessToken = await this.authService.generateAccessToken(userId);
 
       res.cookie('access_token', newAccessToken, {
@@ -123,14 +125,26 @@ export class AuthController {
         sameSite: 'none',
         domain: 'newpick.site',
         path: '/',
-        maxAge: 3 * 60 * 60 * 1000, // 3시간
+        maxAge: 3 * 60 * 60 * 1000,
       });
+
+      res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: 'newpick.site',
+        path: '/',
+        maxAge: 12 * 60 * 60 * 1000,
+      });
+
+      console.log('Set-Cookie headers sent');
 
       return res.json({
         message: 'Token refreshed',
         accessToken: newAccessToken,
       });
     } catch (err) {
+      console.log('Token Verification Failed:', err);
       return res
         .status(401)
         .json({ message: 'Unauthorized - Token verification failed' });
