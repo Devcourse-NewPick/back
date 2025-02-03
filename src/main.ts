@@ -48,5 +48,10 @@ async function bootstrap() {
   } catch (error) {
     console.error('Error starting server:', error);
   }
+
+  app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    next();
+  });
 }
 bootstrap();
