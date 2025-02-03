@@ -159,28 +159,29 @@ export class AuthController {
     }
 
     try {
+      // Refresh Token을 DB에서 완전히 삭제
       await this.authService.removeRefreshToken(user.id);
+      console.log(`All refresh tokens removed for user ID: ${user.id}`);
     } catch (err) {
+      console.error('Error removing refresh token:', err);
       return res.status(500).json({ message: 'Error removing refresh token' });
     }
 
-    // 쿠키 삭제를 확실하게 수행
-    res.cookie('access_token', '', {
+    // 쿠키 완전 삭제
+    res.clearCookie('access_token', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
-      expires: new Date(0),
     });
 
-    res.cookie('refresh_token', '', {
+    res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
-      expires: new Date(0),
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });
