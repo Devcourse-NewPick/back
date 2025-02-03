@@ -15,26 +15,16 @@ export class AuthService {
     username: string,
     profileImg: string,
   ) {
-    let user = await this.prisma.user.findUnique({
-      where: { email },
-      select: { id: true, email: true, username: true, profileImg: true },
-    });
+    if (!email || !username) return null; // 유효한 사용자만 저장
+    let user = await this.prisma.user.findUnique({ where: { email } });
 
     if (!user) {
       user = await this.prisma.user.create({
-        data: {
-          email,
-          username,
-          password: googleSub,
-          profileImg,
-        },
-        select: { id: true, email: true, username: true, profileImg: true },
+        data: { email, username, password: googleSub, profileImg },
       });
     }
-
     return user;
   }
-
   async generateAccessToken(userId: number) {
     const token = this.jwtService.sign({ sub: userId }, { expiresIn: '180m' }); // 3시간
     console.log('Access Token:', token); // 토큰 확인
@@ -66,16 +56,16 @@ export class AuthService {
     });
   }
 
-  /**
-   * 만료된 Access Token에서도 userId(sub)를 추출하는 메서드
-   */
-  decodeExpiredAccessToken(token: string) {
-    try {
-      return this.jwtService.decode(token) as { sub: number } | null;
-    } catch (err) {
-      return null;
-    }
-  }
+  // **
+  //  * 만료된 Access Token에서도 userId(sub)를 추출하는 메서드
+  //  */
+  // decodeExpiredAccessToken(token: string) {
+  //   try {
+  //     return this.jwtService.decode(token) as { sub: number } | null;
+  //   } catch (err) {
+  //     return null;
+  //   }
+  // }
 
   async verifyRefreshToken(
     userId: number,
