@@ -19,18 +19,20 @@ export class BasicRepositoryController {
   async getNewsletters(
     @Query() query: { offset: number; limit: number; popular: boolean },
   ) {
-    if (query.popular || query.offset || query.limit) {
-      const offset = Number(query.offset);
-      const limit = Number(query.limit);
+    const offset = Number(query.offset);
+    const limit = Number(query.limit);
+
+    if (query.popular) {
       const popular = Boolean(query.popular);
       return {
         message: `인기 순으로 ${popular ? '내림차순' : '오름차순'} 조회 성공`,
         data: await this.newsletterRepo.getNewsletter(offset, limit, popular),
       };
     }
+
     return {
       message: '정렬 없이 목록 조회 성공',
-      data: await this.newsletterRepo.getNewsletter(0, 10),
+      data: await this.newsletterRepo.getNewsletter(offset, limit),
     };
   }
 
