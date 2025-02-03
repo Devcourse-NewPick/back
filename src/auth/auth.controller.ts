@@ -64,7 +64,7 @@ export class AuthController {
       maxAge: 12 * 60 * 60 * 1000, // 12시간
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https://www.newpick.site';
+    const frontendUrl = process.env.FRONTEND_URL || 'https:';
 
     return res.send(`
       <script>
@@ -171,6 +171,7 @@ export class AuthController {
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
+      maxAge: 0,
     });
 
     res.clearCookie('refresh_token', {
@@ -179,6 +180,7 @@ export class AuthController {
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
+      maxAge: 0,
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });
