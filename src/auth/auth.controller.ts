@@ -64,7 +64,7 @@ export class AuthController {
       maxAge: 12 * 60 * 60 * 1000, // 12시간
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https:';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.newpick.site';
 
     return res.send(`
       <script>
