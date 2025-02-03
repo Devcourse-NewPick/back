@@ -30,10 +30,13 @@ jobs:
             if [ ! -d "~/back" ]; then
               echo "📦 Cloning repository..."
               git clone https://github.com/Devcourse-NewPick/back.git ~/back
+            else
+              echo "📥 Pulling updates..."
+              cd ~/back
+              git stash
+              git pull origin main
             fi
             cd ~/back || exit 1
-            git fetch --all
-            git reset --hard origin/main
             echo "✅ Code updated"
 
             echo "🔑 Creating .env file..."
