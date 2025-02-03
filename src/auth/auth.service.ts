@@ -77,10 +77,15 @@ export class AuthService {
     userId: number,
     refreshToken: string,
   ): Promise<boolean> {
+    console.log('Verifying refresh token for user:', userId);
+    console.log('Received token from request:', refreshToken);
+
     const storedToken = await this.prisma.oAuthToken.findUnique({
       where: { userId },
       select: { refreshToken: true },
     });
+
+    console.log('Stored token in DB:', storedToken?.refreshToken);
 
     return storedToken?.refreshToken === refreshToken;
   }
