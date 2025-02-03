@@ -95,8 +95,6 @@ export class AuthController {
    */
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    console.log('Received Cookies:', req.cookies); // 요청된 쿠키 확인
-
     const refreshToken = req.cookies['refresh_token'];
 
     if (!refreshToken) {
@@ -109,12 +107,23 @@ export class AuthController {
     try {
       const userId =
         await this.authService.verifyAndDecodeRefreshToken(refreshToken);
-
       if (!userId) {
         console.log('Invalid Refresh Token');
         return res
           .status(401)
           .json({ message: 'Unauthorized - Invalid refresh token' });
+      }
+
+      // 추가: DB에 저장된 refresh_token과 비교
+      const isTokenValid = await this.authService.verifyRefreshToken(
+        userId,
+        refreshToken,
+      );
+      if (!isTokenValid) {
+        console.log('Stored refresh token mismatch');
+        return res
+          .status(401)
+          .json({ message: 'Unauthorized - Stored refresh token mismatch' });
       }
 
       const newAccessToken = await this.authService.generateAccessToken(userId);
@@ -137,8 +146,6 @@ export class AuthController {
         maxAge: 12 * 60 * 60 * 1000,
       });
 
-      console.log('Set-Cookie headers sent');
-
       return res.json({
         message: 'Token refreshed',
         accessToken: newAccessToken,
@@ -160,27 +167,32 @@ export class AuthController {
     }
 
     try {
-      await this.authService.removeRefreshToken(user.id);
+      const deletedTokens = await this.authService.removeRefreshToken(user.id);
+      console.log(
+        `${deletedTokens} refresh tokens removed for user ID: ${user.id}`,
+      );
     } catch (err) {
+      console.error('Error removing refresh token:', err);
       return res.status(500).json({ message: 'Error removing refresh token' });
     }
 
-    res.clearCookie('access_token', {
+    // 쿠키 삭제 후
+    res.cookie('access_token', '', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
-      maxAge: 0,
+      expires: new Date(0), // 즉시 만료
     });
 
-    res.clearCookie('refresh_token', {
+    res.cookie('refresh_token', '', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
-      maxAge: 0,
+      expires: new Date(0), // 즉시 만료
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });
