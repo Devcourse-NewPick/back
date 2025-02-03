@@ -14,8 +14,8 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          
-      - name: Clone repository to Server
+
+      - name: Update repository on Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -24,14 +24,15 @@ jobs:
           script: |
             echo "🔄 Updating code..."
             if [ -d "/home/${{ secrets.EC2_USER }}/back" ]; then
-              echo "🗑️ Removing existing repository..."
+              echo "📦 Updating existing repository..."
+              cd /home/${{ secrets.EC2_USER }}/back
+              git fetch origin
+              git reset --hard origin/main
+            else
+              echo "📦 Cloning repository..."
               cd ~
-              sudo rm -rf /home/${{ secrets.EC2_USER }}/back
+              git clone https://github.com/Devcourse-NewPick/back.git
             fi
-           
-            echo "📦 Cloning repository..."
-            cd ~
-            git clone https://github.com/Devcourse-NewPick/back.git
             echo "✅ Code updated"
         
       - name: Build and Setup
