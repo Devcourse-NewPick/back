@@ -88,4 +88,17 @@ export class AuthService {
   async removeRefreshToken(userId: number) {
     await this.prisma.oAuthToken.deleteMany({ where: { userId } });
   }
+
+  async verifyAndDecodeRefreshToken(
+    refreshToken: string,
+  ): Promise<number | null> {
+    try {
+      const decoded = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+      return decoded?.sub || null;
+    } catch (err) {
+      return null;
+    }
+  }
 }
