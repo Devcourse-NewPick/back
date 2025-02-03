@@ -51,6 +51,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       domain: 'newpick.site',
+      path: '/',
       maxAge: 3 * 60 * 60 * 1000, // 3시간
     });
 
@@ -59,6 +60,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       domain: 'newpick.site',
+      path: '/',
       maxAge: 12 * 60 * 60 * 1000, // 12시간
     });
 
@@ -120,6 +122,7 @@ export class AuthController {
         secure: true,
         sameSite: 'none',
         domain: 'newpick.site',
+        path: '/',
         maxAge: 3 * 60 * 60 * 1000, // 3시간
       });
 
@@ -153,6 +156,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       domain: 'newpick.site',
+      path: '/',
     });
 
     res.clearCookie('refresh_token', {
@@ -160,6 +164,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       domain: 'newpick.site',
+      path: '/',
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });

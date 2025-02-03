@@ -79,4 +79,60 @@ export class NewsletterRepo {
       data,
     });
   }
+
+  /**
+   * 어제의 시작/종료 시간을 계산하는 헬퍼 메서드
+   */
+  private getYesterdayRange(): { start: Date; end: Date } {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const start = new Date(yesterday);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(yesterday);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+
+  /**
+   * 특정 카테고리에 대해 어제 작성된 뉴스레터 중 가장 최근의 하나를 조회
+   */
+  async getNewsletterFromYesterdayByCategory(
+    categoryId: number,
+  ): Promise<Newsletter | null> {
+    const { start, end } = this.getYesterdayRange();
+    return this.prisma.newsletter.findFirst({
+      where: {
+        categoryId,
+        createdAt: { gte: start, lte: end },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * 모든 카테고리에 대해 어제 작성된 뉴스레터가 존재하는 카테고리별로
+   * 가장 최근의 뉴스레터 한 건씩 조회
+   */
+  async getNewslettersFromYesterdayForAllCategories(): Promise<Newsletter[]> {
+    const { start, end } = this.getYesterdayRange();
+
+    // 어제 생성된 뉴스레터가 있는 각 카테고리의 목록을 distinct 하게 조회
+    const categories = await this.prisma.newsletter.findMany({
+      where: { createdAt: { gte: start, lte: end } },
+      select: { categoryId: true },
+      distinct: ['categoryId'],
+    });
+
+    const newsletters: Newsletter[] = [];
+    // 각 카테고리별로 가장 최근의 뉴스레터 한 건씩 조회
+    for (const { categoryId } of categories) {
+      const newsletter =
+        await this.getNewsletterFromYesterdayByCategory(categoryId);
+      if (newsletter) {
+        newsletters.push(newsletter);
+      }
+    }
+    return newsletters;
+  }
 }
