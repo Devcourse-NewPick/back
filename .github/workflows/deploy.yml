@@ -27,16 +27,14 @@ jobs:
           command_timeout: "10m"
           script: |
             echo "🔄 Updating code..."
-            if [ ! -d "~/back" ]; then
-              echo "📦 Cloning repository..."
-              git clone https://github.com/Devcourse-NewPick/back.git ~/back
-            else
-              echo "📥 Pulling updates..."
-              cd ~/back
-              git stash
-              git pull origin main
+            if [ -d "~/back" ]; then
+              echo "🗑️ Removing existing repository..."
+              rm -rf ~/back
             fi
-            cd ~/back || exit 1
+            
+            echo "📦 Cloning repository..."
+            git clone https://github.com/Devcourse-NewPick/back.git ~/back
+            
             echo "✅ Code updated"
 
             echo "🔑 Creating .env file..."
