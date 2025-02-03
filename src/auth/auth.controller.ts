@@ -30,6 +30,11 @@ export class AuthController {
 
     const { googleSub, email, username, profileImg } = req.user as any;
 
+    // 유효한 사용자만 등록하도록 개선
+    if (!email || !username) {
+      return res.status(400).json({ message: 'Invalid user data' });
+    }
+
     const user = await this.authService.validateOrCreateGoogleUser(
       googleSub,
       email,
@@ -46,6 +51,7 @@ export class AuthController {
 
     await this.authService.storeRefreshToken(user.id, refreshToken);
 
+    // Refresh Token을 한 번만 설정
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: true,
@@ -96,9 +102,7 @@ export class AuthController {
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies['refresh_token'];
-
     if (!refreshToken) {
-      console.log('No Refresh Token Found');
       return res
         .status(401)
         .json({ message: 'Unauthorized - No refresh token found' });
@@ -108,22 +112,20 @@ export class AuthController {
       const userId =
         await this.authService.verifyAndDecodeRefreshToken(refreshToken);
       if (!userId) {
-        console.log('Invalid Refresh Token');
         return res
           .status(401)
           .json({ message: 'Unauthorized - Invalid refresh token' });
       }
 
-      // 추가: DB에 저장된 refresh_token과 비교
+      // Refresh Token이 DB에 저장된 것과 일치하는지 확인
       const isTokenValid = await this.authService.verifyRefreshToken(
         userId,
         refreshToken,
       );
       if (!isTokenValid) {
-        console.log('Stored refresh token mismatch');
         return res
           .status(401)
-          .json({ message: 'Unauthorized - Stored refresh token mismatch' });
+          .json({ message: 'Unauthorized - Refresh token mismatch' });
       }
 
       const newAccessToken = await this.authService.generateAccessToken(userId);
@@ -137,21 +139,11 @@ export class AuthController {
         maxAge: 3 * 60 * 60 * 1000,
       });
 
-      res.cookie('refresh_token', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        domain: '.newpick.site',
-        path: '/',
-        maxAge: 12 * 60 * 60 * 1000,
-      });
-
       return res.json({
         message: 'Token refreshed',
         accessToken: newAccessToken,
       });
     } catch (err) {
-      console.log('Token Verification Failed:', err);
       return res
         .status(401)
         .json({ message: 'Unauthorized - Token verification failed' });
@@ -167,23 +159,19 @@ export class AuthController {
     }
 
     try {
-      const deletedTokens = await this.authService.removeRefreshToken(user.id);
-      console.log(
-        `${deletedTokens} refresh tokens removed for user ID: ${user.id}`,
-      );
+      await this.authService.removeRefreshToken(user.id);
     } catch (err) {
-      console.error('Error removing refresh token:', err);
       return res.status(500).json({ message: 'Error removing refresh token' });
     }
 
-    // 쿠키 삭제 후
+    // 쿠키 삭제를 확실하게 수행
     res.cookie('access_token', '', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
-      expires: new Date(0), // 즉시 만료
+      expires: new Date(0),
     });
 
     res.cookie('refresh_token', '', {
@@ -192,7 +180,7 @@ export class AuthController {
       sameSite: 'none',
       domain: '.newpick.site',
       path: '/',
-      expires: new Date(0), // 즉시 만료
+      expires: new Date(0),
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });
