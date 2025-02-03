@@ -24,6 +24,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { MemoryMonitorService } from './monitoring/memory.monitor';
 import { BasicRepositoryModule } from './repository/module';
 import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
+import { CoopMiddleware } from './middleware/coop.middleware';
 // import { CommonResponseInterceptor } from './common/response.interceptor';
 
 @Module({
@@ -68,7 +69,7 @@ import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ConfigLoggerMiddleware).forRoutes('*');
+    consumer.apply(ConfigLoggerMiddleware, CoopMiddleware).forRoutes('*');
   }
 }
 
