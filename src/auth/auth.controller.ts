@@ -92,7 +92,6 @@ export class AuthController {
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies['refresh_token'];
-    const accessToken = req.cookies['access_token'];
 
     if (!refreshToken) {
       return res
@@ -101,28 +100,25 @@ export class AuthController {
     }
 
     try {
-      let userId: number;
-      try {
-        const decoded = this.authService.decodeExpiredAccessToken(accessToken);
-        userId = decoded?.sub;
-      } catch (err) {
-        return res
-          .status(401)
-          .json({ message: 'Unauthorized - Invalid access token' });
-      }
+      // refreshToken에서 userId 추출
+      const decodedRefreshToken = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+      const userId = decodedRefreshToken.sub;
 
-      // Refresh Token 검증
+      // DB에서 refreshToken이 일치하는지 검증
       const isValid = await this.authService.verifyRefreshToken(
         userId,
         refreshToken,
       );
+
       if (!isValid) {
         return res
           .status(401)
           .json({ message: 'Unauthorized - Invalid refresh token' });
       }
 
-      // 새로운 Access Token 발급
+      // 새로운 accessToken 발급
       const newAccessToken = await this.authService.generateAccessToken(userId);
 
       res.cookie('access_token', newAccessToken, {
