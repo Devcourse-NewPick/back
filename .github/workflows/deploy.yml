@@ -23,11 +23,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
             echo "🔄 Updating code..."
-            if [ -d "~/back" ]; then
+            if [ -d "/home/${{ secrets.EC2_USER }}/back" ]; then
               echo "🗑️ Removing existing repository..."
               cd ~
-              sudo rm -rf back
-              sudo rm -rf ./back 
               sudo rm -rf /home/${{ secrets.EC2_USER }}/back
             fi
            
