@@ -100,25 +100,17 @@ export class AuthController {
     }
 
     try {
-      // refreshToken에서 userId 추출
-      const decodedRefreshToken = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
-      });
-      const userId = decodedRefreshToken.sub;
+      // AuthService를 통해 refreshToken 검증
+      const userId =
+        await this.authService.verifyAndDecodeRefreshToken(refreshToken);
 
-      // DB에서 refreshToken이 일치하는지 검증
-      const isValid = await this.authService.verifyRefreshToken(
-        userId,
-        refreshToken,
-      );
-
-      if (!isValid) {
+      if (!userId) {
         return res
           .status(401)
           .json({ message: 'Unauthorized - Invalid refresh token' });
       }
 
-      // 새로운 accessToken 발급
+      // 새로운 Access Token 발급
       const newAccessToken = await this.authService.generateAccessToken(userId);
 
       res.cookie('access_token', newAccessToken, {
