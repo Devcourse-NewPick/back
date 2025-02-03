@@ -36,14 +36,18 @@ export class AuthService {
   }
 
   async generateAccessToken(userId: number) {
-    return this.jwtService.sign({ sub: userId }, { expiresIn: '180m' }); // 3시간으로 변경입니다.
+    const token = this.jwtService.sign({ sub: userId }, { expiresIn: '180m' }); // 3시간
+    console.log('Access Token:', token); // 토큰 확인
+    return token;
   }
 
   async generateRefreshToken(userId: number) {
-    return this.jwtService.sign(
+    const token = this.jwtService.sign(
       { sub: userId },
-      { expiresIn: '12h', secret: process.env.JWT_REFRESH_SECRET }, // 12시간으로 변경입니다.
+      { expiresIn: '12h', secret: process.env.JWT_REFRESH_SECRET }, // 12시간
     );
+    console.log('Refresh Token:', token); // 토큰 확인
+    return token;
   }
 
   async storeRefreshToken(userId: number, refreshToken: string) {
@@ -97,12 +101,17 @@ export class AuthService {
   async verifyAndDecodeRefreshToken(
     refreshToken: string,
   ): Promise<number | null> {
+    console.log('Received Refresh Token:', refreshToken);
+
     try {
       const decoded = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
+
+      console.log('Decoded Refresh Token:', decoded);
       return decoded?.sub || null;
     } catch (err) {
+      console.error('Refresh Token Verification Failed:', err.message);
       return null;
     }
   }
