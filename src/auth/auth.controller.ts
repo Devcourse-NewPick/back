@@ -49,14 +49,14 @@ export class AuthController {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 3 * 60 * 60 * 1000, // 3시간
     });
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 12 * 60 * 60 * 1000, // 12시간
     });
 
@@ -128,7 +128,7 @@ export class AuthController {
       res.cookie('access_token', newAccessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 3 * 60 * 60 * 1000, // 3시간
       });
 
@@ -153,20 +153,20 @@ export class AuthController {
 
     try {
       await this.authService.removeRefreshToken(user.id);
-    } catch (error) {
+    } catch (err) {
       return res.status(500).json({ message: 'Error removing refresh token' });
     }
 
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
     });
 
     res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });
