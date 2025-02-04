@@ -8,10 +8,15 @@ import {
   BadRequestException,
   NotFoundException,
   ParseIntPipe,
+  ValidationPipe,
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { NewsletterRepo } from '../newsletter.repository';
-import { NewsletterDto, NewsletterTrendDto } from './newsletter.dto';
+import {
+  NewsletterDto,
+  NewsletterTrendDto,
+  NewsletterCategoryDto,
+} from './newsletter.dto';
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
 export class BasicRepositoryController {
@@ -115,12 +120,19 @@ export class BasicRepositoryController {
       }),
     )
     categoryId: number,
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: NewsletterCategoryDto,
   ) {
     if (!categoryId) {
       throw new BadRequestException('Category ID is required');
     }
-    const data =
-      await this.newsletterRepo.getNewsletterByCategoryId(categoryId);
+    const offset = Number(query.offset);
+    const limit = Number(query.limit);
+    const data = await this.newsletterRepo.getNewsletterByCategoryId(
+      categoryId,
+      offset,
+      limit,
+    );
     if (!data) {
       throw new NotFoundException('Newsletter not found');
     }
