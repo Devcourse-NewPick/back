@@ -1,24 +1,41 @@
-name: Deploy Application to EC2 Server
-
+name: Deploy Application to Server
 on:
   push:
     branches: [ main ]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1️⃣ 리포지토리 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v4
-      # 2️⃣ Node.js 및 패키지 설치
+       
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: 'npm'
-      # 3️⃣ 코드 업데이트 및 빌드
-      - name: Update code and build
+
+      - name: Update repository on Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            echo "🔄 Updating code..."
+            if [ -d "/home/${{ secrets.EC2_USER }}/back" ]; then
+              echo "📦 Updating existing repository..."
+              cd /home/${{ secrets.EC2_USER }}/back
+              git fetch origin
+              git reset --hard origin/main
+            else
+              echo "📦 Cloning repository..."
+              cd ~
+              git clone https://github.com/Devcourse-NewPick/back.git
+            fi
+            echo "✅ Code updated"
+        
+      - name: Build and Setup
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -26,19 +43,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           command_timeout: "10m"
           script: |
-            echo "🔄 Updating code..."
-            if [ ! -d "~/back" ]; then
-              echo "📦 Cloning repository..."
-              git clone https://github.com/Devcourse-NewPick/back.git ~/back
-            else
-              echo "📥 Pulling updates..."
-              cd ~/back
-              git stash
-              git pull origin main
-            fi
-            cd ~/back || exit 1
-            echo "✅ Code updated"
-
+            cd ~/back
+            
             echo "🔑 Creating .env file..."
             echo "PORT='${{ secrets.PORT }}'" | sudo tee ~/back/.env > /dev/null
             echo "MYSQL_URL='${{ secrets.MYSQL_URL }}'" | sudo tee -a ~/back/.env > /dev/null
@@ -54,9 +60,9 @@ jobs:
             echo "MAIL_PASSWORD='${{ secrets.MAIL_PASSWORD }}'" | sudo tee -a ~/back/.env > /dev/null
             sudo chown ${{ secrets.EC2_USER }}:${{ secrets.EC2_USER }} ~/back/.env
             echo "✅ .env file created"
-
+            
             echo "📦 Installing dependencies..."
-            npm install
+            npm install --legacy-peer-deps
             echo "✅ Dependencies installed"
             
             echo "🌈 Generating Prisma client..."
@@ -67,7 +73,7 @@ jobs:
             echo "🔨 Building project..."
             npm run build
             echo "✅ Build process complete"
-      # 4️⃣ 서비스 재시작 및 동작 확인
+
       - name: Restart Service
         uses: appleboy/ssh-action@master
         with:
@@ -86,8 +92,7 @@ jobs:
               echo "🚀 Starting service..."
               sudo systemctl start nestjs.service
             fi
-            echo "✅ Service restart complete"
-
+            
             if sudo systemctl is-active --quiet nestjs.service; then
               echo "🚀 Deployment successful! Service is running."
             else

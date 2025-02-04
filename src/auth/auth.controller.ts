@@ -30,6 +30,11 @@ export class AuthController {
 
     const { googleSub, email, username, profileImg } = req.user as any;
 
+    // 유효한 사용자만 등록하도록 개선
+    if (!email || !username) {
+      return res.status(400).json({ message: 'Invalid user data' });
+    }
+
     const user = await this.authService.validateOrCreateGoogleUser(
       googleSub,
       email,
@@ -46,11 +51,12 @@ export class AuthController {
 
     await this.authService.storeRefreshToken(user.id, refreshToken);
 
+    // Refresh Token을 한 번만 설정
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'newpick.site',
+      domain: '.newpick.site',
       path: '/',
       maxAge: 3 * 60 * 60 * 1000, // 3시간
     });
@@ -59,12 +65,12 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'newpick.site',
+      domain: '.newpick.site',
       path: '/',
       maxAge: 12 * 60 * 60 * 1000, // 12시간
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.newpick.site';
 
     return res.send(`
       <script>
@@ -95,12 +101,8 @@ export class AuthController {
    */
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    console.log('Received Cookies:', req.cookies); // 요청된 쿠키 확인
-
     const refreshToken = req.cookies['refresh_token'];
-
     if (!refreshToken) {
-      console.log('No Refresh Token Found');
       return res
         .status(401)
         .json({ message: 'Unauthorized - No refresh token found' });
@@ -109,12 +111,21 @@ export class AuthController {
     try {
       const userId =
         await this.authService.verifyAndDecodeRefreshToken(refreshToken);
-
       if (!userId) {
-        console.log('Invalid Refresh Token');
         return res
           .status(401)
           .json({ message: 'Unauthorized - Invalid refresh token' });
+      }
+
+      // Refresh Token이 DB에 저장된 것과 일치하는지 확인
+      const isTokenValid = await this.authService.verifyRefreshToken(
+        userId,
+        refreshToken,
+      );
+      if (!isTokenValid) {
+        return res
+          .status(401)
+          .json({ message: 'Unauthorized - Refresh token mismatch' });
       }
 
       const newAccessToken = await this.authService.generateAccessToken(userId);
@@ -123,28 +134,16 @@ export class AuthController {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        domain: 'newpick.site',
+        domain: '.newpick.site',
         path: '/',
         maxAge: 3 * 60 * 60 * 1000,
       });
-
-      res.cookie('refresh_token', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        domain: 'newpick.site',
-        path: '/',
-        maxAge: 12 * 60 * 60 * 1000,
-      });
-
-      console.log('Set-Cookie headers sent');
 
       return res.json({
         message: 'Token refreshed',
         accessToken: newAccessToken,
       });
     } catch (err) {
-      console.log('Token Verification Failed:', err);
       return res
         .status(401)
         .json({ message: 'Unauthorized - Token verification failed' });
@@ -160,16 +159,20 @@ export class AuthController {
     }
 
     try {
+      // Refresh Token을 DB에서 완전히 삭제
       await this.authService.removeRefreshToken(user.id);
+      console.log(`All refresh tokens removed for user ID: ${user.id}`);
     } catch (err) {
+      console.error('Error removing refresh token:', err);
       return res.status(500).json({ message: 'Error removing refresh token' });
     }
 
+    // 쿠키 완전 삭제
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'newpick.site',
+      domain: '.newpick.site',
       path: '/',
     });
 
@@ -177,7 +180,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'newpick.site',
+      domain: '.newpick.site',
       path: '/',
     });
 
