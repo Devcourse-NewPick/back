@@ -203,4 +203,19 @@ export class NewsletterRepo {
       },
     });
   }
+
+  async addViewcount(id: number) {
+    id = Number(id);
+    return this.prisma.newsletter.update({
+      where: { id },
+      data: { viewcount: { increment: 1 } },
+    });
+  }
+  async resetViewcount(id: number) {
+    id = Number(id);
+    return this.prisma.newsletter.update({
+      where: { id },
+      data: { viewcount: 0 },
+    });
+  }
 }

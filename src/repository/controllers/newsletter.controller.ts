@@ -9,6 +9,7 @@ import {
   NotFoundException,
   ParseIntPipe,
   ValidationPipe,
+  Post,
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { NewsletterRepo } from '../newsletter.repository';
@@ -183,6 +184,38 @@ export class BasicRepositoryController {
     return {
       message: '랜덤 조회 성공',
       data: newsletters,
+    };
+  }
+
+  @Post('viewcount/:id')
+  async addViewcount(@Param('id') id: number) {
+    id = Number(id);
+    if (!id) {
+      throw new BadRequestException('Newsletter ID is required');
+    }
+    const data = await this.newsletterRepo.addViewcount(id);
+    if (!data) {
+      throw new NotFoundException('Newsletter not found');
+    }
+    return {
+      message: '조회수 증가 성공',
+      data: data.viewcount,
+    };
+  }
+
+  @Post('reset-viewcount/:id')
+  async resetViewcount(@Param('id') id: number) {
+    id = Number(id);
+    if (!id) {
+      throw new BadRequestException('Newsletter ID is required');
+    }
+    const data = await this.newsletterRepo.resetViewcount(id);
+    if (!data) {
+      throw new NotFoundException('Newsletter not found');
+    }
+    return {
+      message: '조회수 초기화 성공',
+      data: data.viewcount,
     };
   }
 }
