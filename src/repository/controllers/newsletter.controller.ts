@@ -9,6 +9,7 @@ import {
   NotFoundException,
   ParseIntPipe,
   ValidationPipe,
+  Post,
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { NewsletterRepo } from '../newsletter.repository';
@@ -16,7 +17,10 @@ import {
   NewsletterDto,
   NewsletterTrendDto,
   NewsletterCategoryDto,
+  NewsletterRandomDto,
 } from './newsletter.dto';
+import dayjs from 'dayjs';
+
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
 export class BasicRepositoryController {
@@ -155,6 +159,63 @@ export class BasicRepositoryController {
     return {
       message: '삭제 성공',
       data: data,
+    };
+  }
+
+  @Get('random/:num/:from')
+  async getRandomNewsletter(@Param() params: NewsletterRandomDto) {
+    const num = params.num || 1;
+    const from = params.from || 7;
+
+    const dateStart = dayjs().subtract(from, 'day').startOf('day').toDate();
+    const dateEnd = dayjs().endOf('day').toDate();
+    console.log('sdfsdfsdf', num, from);
+
+    const newsletters = await this.newsletterRepo.getRandomNewsletters(
+      dateStart,
+      dateEnd,
+      num,
+    );
+
+    if (!newsletters.length) {
+      throw new NotFoundException('해당 기간에 뉴스레터가 없습니다');
+    }
+
+    return {
+      message: '랜덤 조회 성공',
+      data: newsletters,
+    };
+  }
+
+  @Post('viewcount/:id')
+  async addViewcount(@Param('id') id: number) {
+    id = Number(id);
+    if (!id) {
+      throw new BadRequestException('Newsletter ID is required');
+    }
+    const data = await this.newsletterRepo.addViewcount(id);
+    if (!data) {
+      throw new NotFoundException('Newsletter not found');
+    }
+    return {
+      message: '조회수 증가 성공',
+      data: data.viewcount,
+    };
+  }
+
+  @Post('reset-viewcount/:id')
+  async resetViewcount(@Param('id') id: number) {
+    id = Number(id);
+    if (!id) {
+      throw new BadRequestException('Newsletter ID is required');
+    }
+    const data = await this.newsletterRepo.resetViewcount(id);
+    if (!data) {
+      throw new NotFoundException('Newsletter not found');
+    }
+    return {
+      message: '조회수 초기화 성공',
+      data: data.viewcount,
     };
   }
 }

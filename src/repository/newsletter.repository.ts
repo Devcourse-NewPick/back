@@ -98,17 +98,24 @@ export class NewsletterRepo {
   }
 
   async getNewsletterByCategoryIdAndDate(
-    categoryId: number,
     dateStart: Date,
     dateEnd: Date,
+    categoryId?: number,
   ): Promise<Newsletter[]> {
-    return this.prisma.newsletter.findMany({
-      where: {
-        categoryId,
-        createdAt: { gte: dateStart, lte: dateEnd },
-      },
-    });
+    if (categoryId) {
+      return this.prisma.newsletter.findMany({
+        where: {
+          categoryId,
+          createdAt: { gte: dateStart, lte: dateEnd },
+        },
+      });
+    } else {
+      return this.prisma.newsletter.findMany({
+        where: { createdAt: { gte: dateStart, lte: dateEnd } },
+      });
+    }
   }
+
   async deleteNewsletter(id: number) {
     return this.prisma.newsletter.delete({
       where: { id },
@@ -176,5 +183,39 @@ export class NewsletterRepo {
       }
     }
     return newsletters;
+  }
+
+  async getRandomNewsletters(
+    dateStart: Date,
+    dateEnd: Date,
+    num: number,
+  ): Promise<Newsletter[]> {
+    return this.prisma.newsletter.findMany({
+      where: {
+        createdAt: {
+          gte: dateStart,
+          lte: dateEnd,
+        },
+      },
+      take: Number(num),
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async addViewcount(id: number) {
+    id = Number(id);
+    return this.prisma.newsletter.update({
+      where: { id },
+      data: { viewcount: { increment: 1 } },
+    });
+  }
+  async resetViewcount(id: number) {
+    id = Number(id);
+    return this.prisma.newsletter.update({
+      where: { id },
+      data: { viewcount: 0 },
+    });
   }
 }
