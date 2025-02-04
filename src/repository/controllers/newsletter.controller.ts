@@ -16,7 +16,10 @@ import {
   NewsletterDto,
   NewsletterTrendDto,
   NewsletterCategoryDto,
+  NewsletterRandomDto,
 } from './newsletter.dto';
+import dayjs from 'dayjs';
+
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
 export class BasicRepositoryController {
@@ -155,6 +158,31 @@ export class BasicRepositoryController {
     return {
       message: '삭제 성공',
       data: data,
+    };
+  }
+
+  @Get('random/:num/:from')
+  async getRandomNewsletter(@Param() params: NewsletterRandomDto) {
+    const num = params.num || 1;
+    const from = params.from || 7;
+
+    const dateStart = dayjs().subtract(from, 'day').startOf('day').toDate();
+    const dateEnd = dayjs().endOf('day').toDate();
+    console.log('sdfsdfsdf', num, from);
+
+    const newsletters = await this.newsletterRepo.getRandomNewsletters(
+      dateStart,
+      dateEnd,
+      num,
+    );
+
+    if (!newsletters.length) {
+      throw new NotFoundException('해당 기간에 뉴스레터가 없습니다');
+    }
+
+    return {
+      message: '랜덤 조회 성공',
+      data: newsletters,
     };
   }
 }
