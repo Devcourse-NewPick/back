@@ -5,14 +5,12 @@ import {
   Delete,
   UnauthorizedException,
   Req,
-  UseGuards,
   Body,
 } from '@nestjs/common';
 import { SubscriberService } from './subscriber.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller('subscribers')
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 export class SubscriberController {
   constructor(private readonly subscriberService: SubscriberService) {}
 
@@ -59,6 +57,11 @@ export class SubscriberController {
   async getSubscriptionHistory(@Req() req) {
     const userId = this.validateAndParseUserId(req.user?.id);
     return this.subscriberService.getSubscriptionHistory(userId);
+  }
+
+  @Get('all')
+  async getAllSubscribers() {
+    return this.subscriberService.getSubscribers();
   }
 
   /**
