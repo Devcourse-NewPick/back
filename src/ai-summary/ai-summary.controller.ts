@@ -31,6 +31,7 @@ export class AiSummaryController {
     const result = await this.openAiService.summarizeText(
       news.news,
       categoryId,
+      true,
     );
     return {
       newsletter: result.newsletter,

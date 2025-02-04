@@ -6,33 +6,33 @@ import {
   Param,
   Delete,
   BadRequestException,
+  NotFoundException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { NewsletterRepo } from '../newsletter.repository';
-import { NotFoundException } from '@nestjs/common';
+import { NewsletterDto, NewsletterTrendDto } from './newsletter.dto';
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
 export class BasicRepositoryController {
   constructor(private readonly newsletterRepo: NewsletterRepo) {}
 
   @Get()
-  async getNewsletters(
-    @Query() query: { offset: number; limit: number; popular: boolean },
-  ) {
+  async getNewsletters(@Query() query: NewsletterDto) {
     const offset = Number(query.offset);
     const limit = Number(query.limit);
 
-    if (query.popular) {
-      const popular = Boolean(query.popular);
+    if (query.trend) {
+      const trend = Boolean(query.trend);
       return {
-        message: `인기 순으로 ${popular ? '내림차순' : '오름차순'} 조회 성공`,
-        data: await this.newsletterRepo.getNewsletter(offset, limit, popular),
+        message: `인기 순으로 ${trend ? '내림차순' : '오름차순'} 조회 성공`,
+        data: await this.newsletterRepo.getNewsletterList(offset, limit, trend),
       };
     }
 
     return {
       message: '정렬 없이 목록 조회 성공',
-      data: await this.newsletterRepo.getNewsletter(offset, limit),
+      data: await this.newsletterRepo.getNewsletterList(offset, limit),
     };
   }
 
@@ -42,11 +42,11 @@ export class BasicRepositoryController {
    * 전달되지 않으면 모든 카테고리에 대해 어제의 뉴스레터(각 카테고리 1건)를 조회합니다.
    */
   @Get('trends')
-  async getYesterdaysNewsletters(@Query('categoryId') categoryId?: number) {
-    if (categoryId) {
+  async getYesterdaysNewsletters(@Query() query: NewsletterTrendDto) {
+    if (query.categoryId) {
       const newsletter =
         await this.newsletterRepo.getNewsletterFromYesterdayByCategory(
-          Number(categoryId),
+          Number(query.categoryId),
         );
       if (!newsletter) {
         throw new NotFoundException(
@@ -71,7 +71,15 @@ export class BasicRepositoryController {
   }
 
   @Get(':id')
-  async getNewsletterById(@Param('id') id: number) {
+  async getNewsletterById(
+    @Param(
+      'id',
+      new ParseIntPipe({
+        errorHttpStatusCode: 400,
+      }),
+    )
+    id: number,
+  ) {
     id = Number(id);
     if (!id) {
       throw new BadRequestException('Newsletter ID is required');
@@ -99,8 +107,15 @@ export class BasicRepositoryController {
   }
 
   @Get('category/:categoryId')
-  async getNewsletterByCategoryId(@Param('categoryId') categoryId: number) {
-    categoryId = Number(categoryId);
+  async getNewsletterByCategoryId(
+    @Param(
+      'categoryId',
+      new ParseIntPipe({
+        errorHttpStatusCode: 400,
+      }),
+    )
+    categoryId: number,
+  ) {
     if (!categoryId) {
       throw new BadRequestException('Category ID is required');
     }
