@@ -17,6 +17,7 @@ import { setTimeofCycle } from 'src/common/helpers';
 export class SchedulerService {
   private isCrawlingEnabled = true;
   private isAiSummaryEnabled = true;
+  private isMailSendEnabled = true;
   constructor(
     private readonly logger: Logger,
     private readonly mailService: MailService,
@@ -30,7 +31,7 @@ export class SchedulerService {
     private schedulerRegistry: SchedulerRegistry,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_7AM, {
+  @Cron(CronExpression.EVERY_DAY_AT_4PM, {
     name: 'startCrawling',
   })
   async startCrawling() {
@@ -44,7 +45,7 @@ export class SchedulerService {
     await this.crawlingService.crawling();
   }
   // ai 요약 스케줄러
-  @Cron(CronExpression.EVERY_DAY_AT_8AM, {
+  @Cron(CronExpression.EVERY_DAY_AT_5PM, {
     name: 'makeAiSummary',
   })
   async makeAiSummary() {
@@ -106,10 +107,14 @@ export class SchedulerService {
   // }
 
   // 주간 요약 뉴스 발송
-  @Cron(CronExpression.EVERY_MONDAY_AT_8AM, {
+  @Cron(CronExpression.EVERY_MONDAY_AT_530PM, {
     name: 'sendNewsletter',
   })
   async sendEmailSummary() {
+    if (!this.isMailSendEnabled) {
+      this.logger.log('메일 발송 스케줄러가 비활성화되었습니다.');
+      return;
+    }
     const subscribers = await this.subscriberService.getSubscribers();
     this.logger.debug(`구독자 수: ${subscribers.length}`);
 
@@ -172,30 +177,30 @@ export class SchedulerService {
     this.logger.debug(this.isAiSummaryEnabled ? '활성화' : '비활성화');
   }
 
+  toggleMailSendScheduler(enable: boolean) {
+    this.isMailSendEnabled = enable;
+    this.logger.debug(this.isMailSendEnabled ? '활성화' : '비활성화');
+  }
+
   getSchedulerStatus() {
     return {
       crawling: this.isCrawlingEnabled,
       aiSummary: this.isAiSummaryEnabled,
+      mailing: this.isMailSendEnabled,
+      mailSendCycle: this.getMailSendCycle(),
     };
   }
 
-  getIsCrawlingEnabled(): boolean {
-    return this.isCrawlingEnabled;
-  }
-
-  getIsAiSummaryEnabled(): boolean {
-    return this.isAiSummaryEnabled;
-  }
-
   setMailSendCycle(hour: number, day: number) {
-    hour = Number(hour) || 8;
+    hour = Number(hour) || 17;
     day = Number(day) || 1;
     const job = this.schedulerRegistry.getCronJob('sendNewsletter');
     const newSchedule = setTimeofCycle(hour, day);
     job.setTime(new CronTime(newSchedule));
     job.start();
 
-    this.logger.debug(`메일 발송 주기가 ${newSchedule}로 변경되었습니다.`);
+    this.logger.debug(`메일 발송 주기가 ${job.cronTime}로 변경되었습니다.`);
+    return job.cronTime;
   }
 
   async manualStartAiSummary() {

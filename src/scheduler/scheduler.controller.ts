@@ -15,7 +15,7 @@ export class SchedulerController {
     private readonly newsletterRepository: NewsletterRepo,
   ) {}
 
-  @Post('crawling')
+  @Post('toggle/crawling')
   toggleCrawling(@Body() data: { enable: boolean }) {
     const enable = Boolean(data.enable);
     this.schedulerService.toggleCrawlingScheduler(enable);
@@ -26,7 +26,7 @@ export class SchedulerController {
     };
   }
 
-  @Post('ai-summary')
+  @Post('toggle/ai-summary')
   toggleAiSummary(@Body() data: { enable: boolean }) {
     const enable = Boolean(data.enable);
     this.schedulerService.toggleAiSummaryScheduler(enable);
@@ -37,16 +37,26 @@ export class SchedulerController {
     };
   }
 
+  @Post('toggle/mail-send')
+  toggleMailSend(@Body() data: { enable: boolean }) {
+    const enable = Boolean(data.enable);
+    this.schedulerService.toggleMailSendScheduler(enable);
+    return {
+      success: true,
+      enabled: enable,
+      message: `메일 발송 스케줄러가 ${enable ? '활성화' : '비활성화'} 되었습니다.`,
+    };
+  }
+
   @Get('status')
   getStatus() {
     return {
-      isCrawlingEnabled: this.schedulerService.getIsCrawlingEnabled(),
-      isAiSummaryEnabled: this.schedulerService.getIsAiSummaryEnabled(),
+      status: this.schedulerService.getSchedulerStatus(),
       message: '스케줄러 상태 조회 완료',
     };
   }
 
-  @Post('change-mail-send-cycle')
+  @Post('change/mail-send-cycle')
   changeMailSendCycle(@Body() data: { hour: number; day: number }) {
     this.schedulerService.setMailSendCycle(data.hour, data.day);
     return {
@@ -55,7 +65,7 @@ export class SchedulerController {
       cycle: this.schedulerService.getMailSendCycle(),
     };
   }
-  @Post('start-crawling')
+  @Post('manual/crawling')
   startCrawling() {
     this.schedulerService.manualStartCrawling();
     return {
@@ -63,7 +73,7 @@ export class SchedulerController {
       message: '크롤링 시작되었습니다.',
     };
   }
-  @Post('start-ai-summary')
+  @Post('manual/ai-summary')
   startAiSummary() {
     this.schedulerService.manualStartAiSummary();
     return {
@@ -71,7 +81,7 @@ export class SchedulerController {
       message: 'AI 요약 시작되었습니다.',
     };
   }
-  @Post('start-mail-send')
+  @Post('manual/mail-send')
   startMailSend() {
     this.schedulerService.manualStartMailSend();
     return {

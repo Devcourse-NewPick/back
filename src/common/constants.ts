@@ -90,4 +90,6 @@ export const CronExpression = {
   EVERY_MONDAY_AT_1PM: '0 0 13 * * 1',
   EVERY_MONDAY_AT_2PM: '0 0 14 * * 1',
   EVERY_MONDAY_AT_3PM: '0 0 15 * * 1',
+  EVERY_MONDAY_AT_5PM: '0 0 17 * * 1',
+  EVERY_MONDAY_AT_530PM: '0 30 17 * * 1',
 } as const;
