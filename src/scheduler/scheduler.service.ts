@@ -72,6 +72,7 @@ export class SchedulerService {
         const newsletter = await this.openAiService.summarizeText(
           news.news,
           category.id,
+          false,
         );
         if (newsletter.newsletter && newsletter.newsletter.length > 0) {
           generatedNewsletter.push(...newsletter.newsletter);

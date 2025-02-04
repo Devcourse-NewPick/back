@@ -24,7 +24,7 @@ export class OpenAiService {
   async summarizeText(
     news: CrawledNews[],
     categoryId: number,
-    test?: boolean,
+    test: boolean,
   ): Promise<{
     summary: string;
     openai: any;
