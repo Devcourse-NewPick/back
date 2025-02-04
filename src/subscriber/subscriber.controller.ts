@@ -6,11 +6,12 @@ import {
   UnauthorizedException,
   Req,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import { SubscriberService } from './subscriber.service';
-
+import { AuthGuard } from '@nestjs/passport';
 @Controller('subscribers')
-// @UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 export class SubscriberController {
   constructor(private readonly subscriberService: SubscriberService) {}
 

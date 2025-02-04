@@ -43,8 +43,8 @@ export class OpenAiService {
     try {
       const response = await this.basicSummarizeService.basicSummarize(
         newsText,
-        500,
         1000,
+        1500,
       );
 
       const summary = response.choices[0].message.content;
