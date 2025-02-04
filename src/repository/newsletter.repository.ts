@@ -66,9 +66,15 @@ export class NewsletterRepo {
     });
   }
 
-  async getNewsletterByCategoryId(categoryId: number) {
+  async getNewsletterByCategoryId(
+    categoryId: number,
+    offset: number,
+    limit: number,
+  ) {
     return this.prisma.newsletter.findMany({
       where: { categoryId },
+      skip: offset,
+      take: limit,
     });
   }
 
