@@ -13,9 +13,15 @@ export class AiSummaryController {
 
   @Post('summarize')
   async summarize(
-    @Body() data: { dateStart: string; dateEnd: string; categoryId: number },
+    @Body()
+    data: {
+      dateStart: string;
+      dateEnd: string;
+      categoryId: number;
+      test: boolean;
+    },
   ) {
-    const { dateStart, dateEnd, categoryId } = data;
+    const { dateStart, dateEnd, categoryId, test } = data;
     const news = await this.crawlingRepository.getCrawledNews(
       dateStart,
       dateEnd,
@@ -31,7 +37,7 @@ export class AiSummaryController {
     const result = await this.openAiService.summarizeText(
       news.news,
       categoryId,
-      true,
+      test,
     );
     return {
       newsletter: result.newsletter,
