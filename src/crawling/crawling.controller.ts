@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, UseInterceptors, Query } from '@nestjs/common';
 import { CrawlingService } from './crawling.service';
 import { CrawlingRepository } from './crawling.repository';
 import { CommonResponseInterceptor } from '../common/response.interceptor';
@@ -16,7 +16,8 @@ export class CrawlingController {
   async getCrawledNewsForTest() {
     const news = await this.crawlingRepository.getLatestCrawledNews();
     const oldNews = await this.crawlingRepository.getOldestCrawledNews();
-    const newsCountperCategory = await this.crawlingRepository.getNewsCountPerCategory();
+    const newsCountperCategory =
+      await this.crawlingRepository.getNewsCountPerCategory();
     return {
       message: '크롤링 데이터 조회 성공',
       data: {
@@ -28,12 +29,13 @@ export class CrawlingController {
   }
 
   @Get('link')
-  async getCrawledNewsByLink(@Body('link') link: string) {
+  async getCrawledNewsByLink(@Query('link') link: string) {
+    console.log(link);
     const news = await this.crawlingRepository.getCrawledNewsByLink(link);
     return {
       message: '크롤링 데이터 조회 성공',
       data: news,
-    }
+    };
   }
 
   @Get('category/:categoryId')
