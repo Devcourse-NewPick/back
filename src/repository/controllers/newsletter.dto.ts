@@ -11,17 +11,32 @@ import {
 import { Type, Transform } from 'class-transformer';
 
 export class NewsletterQueryDto {
-  @IsOptional()
+  @IsDefined({ message: 'offset는 필수 값입니다' })
   @IsNumber({}, { message: 'offset는 숫자여야 합니다' })
-  offset?: number;
+  offset: number;
 
-  @IsOptional()
+  @IsDefined({ message: 'limit는 필수 값입니다' })
   @IsNumber({}, { message: 'limit는 숫자여야 합니다' })
-  limit?: number;
+  limit: number;
 
   @IsOptional()
   @IsBoolean({ message: 'trend는 불리언이어야 합니다' })
+  @Transform(({ obj, key, value }) => {
+    const rawValue = obj[key];
+    if (typeof rawValue === 'string') {
+      return rawValue === 'true';
+    }
+    return value;
+  })
   trend?: boolean;
+
+  @IsOptional()
+  @IsString({ message: 'startDate는 문자열이어야 합니다' })
+  startDate?: string;
+
+  @IsOptional()
+  @IsString({ message: 'endDate는 문자열이어야 합니다' })
+  endDate?: string;
 }
 export class NewsletterBodyDto {
   @IsOptional()

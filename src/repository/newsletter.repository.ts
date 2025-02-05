@@ -1,6 +1,7 @@
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma, Newsletter } from '@prisma/client';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class NewsletterRepo {
@@ -9,55 +10,36 @@ export class NewsletterRepo {
   async getNewsletterList(
     offset: number,
     limit: number,
+    startDate: Date | null,
+    endDate: Date | null,
     trend?: boolean,
-    startDate?: Date,
-    endDate?: Date,
   ) {
-    if (trend) {
-      const orderBy = trend ? 'desc' : 'asc';
-      return this.prisma.newsletter.findMany({
-        select: {
-          id: true,
-          title: true,
-          imageUrl: true,
-          categoryId: true,
-          viewcount: true,
-          createdAt: true,
-          content: true,
-        },
-        where: {
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
-        skip: offset,
-        take: limit,
-        orderBy: {
-          viewcount: orderBy,
-        },
-      });
-    } else {
-      return this.prisma.newsletter.findMany({
-        select: {
-          id: true,
-          title: true,
-          imageUrl: true,
-          categoryId: true,
-          viewcount: true,
-          createdAt: true,
-          content: true,
-        },
-        where: {
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
-        skip: offset,
-        take: limit,
-      });
+    const whereClause: any = {};
+
+    if (startDate && endDate) {
+      whereClause.createdAt = {
+        gte: dayjs(startDate).startOf('day').toDate(),
+        lte: dayjs(endDate).endOf('day').toDate(),
+      };
     }
+
+    const result = await this.prisma.newsletter.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        title: true,
+        imageUrl: true,
+        categoryId: true,
+        viewcount: true,
+        createdAt: true,
+        content: true,
+      },
+      skip: offset,
+      take: limit,
+      ...(trend && { orderBy: { viewcount: trend ? 'desc' : 'asc' } }),
+    });
+
+    return result;
   }
 
   async getNewsletter(offset: number, limit: number, trend?: boolean) {
