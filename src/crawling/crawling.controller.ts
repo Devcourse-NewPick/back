@@ -30,7 +30,6 @@ export class CrawlingController {
 
   @Get('link')
   async getCrawledNewsByLink(@Query('link') link: string) {
-    console.log(link);
     const news = await this.crawlingRepository.getCrawledNewsByLink(link);
     return {
       message: '크롤링 데이터 조회 성공',
