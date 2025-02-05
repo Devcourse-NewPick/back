@@ -68,8 +68,21 @@ export class OpenAiService {
       const title = await this.createTitleService.createTitle(summary);
       const html = await this.htmlFormatterService.formatHtml(summary);
 
+      const newsletterTemporary = {
+        title: title,
+        summary: summary,
+        newslinks: newslinks,
+        categoryId: categoryId,
+        html: html,
+      };
+
       if (test) {
-        return { summary, openai: response, categoryId, newsletter: null };
+        return {
+          summary,
+          openai: response,
+          categoryId,
+          newsletter: newsletterTemporary,
+        };
       }
       const newsletter = await this.createNewsletterService.createNewsletter(
         title,
