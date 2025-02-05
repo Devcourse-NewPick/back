@@ -31,7 +31,7 @@ export class SchedulerService {
     private schedulerRegistry: SchedulerRegistry,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_11PM, {
+  @Cron(CronExpression.EVERY_DAY_AT_8AM, {
     //한국시간으로 오전 8시
     name: 'startCrawling',
   })
@@ -46,7 +46,7 @@ export class SchedulerService {
     await this.crawlingService.crawling();
   }
   // ai 요약 스케줄러
-  @Cron(CronExpression.EVERY_DAY_AT_1130PM, {
+  @Cron(CronExpression.EVERY_DAY_AT_830AM, {
     //한국시간으로 오전 8시 30분
     name: 'makeAiSummary',
   })
@@ -110,7 +110,7 @@ export class SchedulerService {
   // }
 
   // 주간 요약 뉴스 발송
-  @Cron(CronExpression.EVERY_SUNDAY_AT_1140PM, {
+  @Cron(CronExpression.EVERY_MONDAY_AT_840AM, {
     //한국시간으로 월요일 오전 8시 40분
     name: 'sendNewsletter',
   })
