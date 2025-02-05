@@ -5,7 +5,8 @@ import { Request, Response, NextFunction } from 'express';
 export class ConfigLoggerMiddleware implements NestMiddleware {
   private readonly logger = new Logger('ConfigModule');
 
-  use(req: Request, res: Response, next: NextFunction) {
+  use(req: Request & { start?: number }, res: Response, next: NextFunction) {
+    req.start = Date.now();
     // 요청 처리 완료 후 로깅
     res.on('finish', () => {
       this.logger.log({
@@ -14,8 +15,9 @@ export class ConfigLoggerMiddleware implements NestMiddleware {
         status: res.statusCode,
         body: req.body,
         params: req.params,
+        query: req.query,
         userAgent: req.headers['user-agent'],
-        ip: req.ip,
+        duration: Date.now() - req.start,
       });
     });
 

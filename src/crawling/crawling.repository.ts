@@ -86,7 +86,6 @@ export class CrawlingRepository {
   }
   // 고유 링크로 해당 크롤링 데이터 조회
   async getCrawledNewsByLink(link: string): Promise<CrawledNews> {
-    console.log(link);
     try {
       const news = await this.crawledNews
         .findOne({
