@@ -6,10 +6,11 @@ import {
   Min,
   IsNumberString,
   IsInt,
+  IsString,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
-export class NewsletterDto {
+export class NewsletterQueryDto {
   @IsOptional()
   @IsNumber({}, { message: 'offset는 숫자여야 합니다' })
   offset?: number;
@@ -21,6 +22,15 @@ export class NewsletterDto {
   @IsOptional()
   @IsBoolean({ message: 'trend는 불리언이어야 합니다' })
   trend?: boolean;
+}
+export class NewsletterBodyDto {
+  @IsOptional()
+  @IsString({ message: 'startDate는 문자열이어야 합니다' })
+  startDate?: string;
+
+  @IsOptional()
+  @IsString({ message: 'endDate는 문자열이어야 합니다' })
+  endDate?: string;
 }
 
 export class NewsletterTrendDto {

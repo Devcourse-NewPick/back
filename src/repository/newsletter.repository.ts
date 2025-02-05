@@ -6,7 +6,13 @@ import { Prisma, Newsletter } from '@prisma/client';
 export class NewsletterRepo {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
-  async getNewsletterList(offset: number, limit: number, trend?: boolean) {
+  async getNewsletterList(
+    offset: number,
+    limit: number,
+    trend?: boolean,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
     if (trend) {
       const orderBy = trend ? 'desc' : 'asc';
       return this.prisma.newsletter.findMany({
@@ -18,6 +24,12 @@ export class NewsletterRepo {
           viewcount: true,
           createdAt: true,
           content: true,
+        },
+        where: {
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
         skip: offset,
         take: limit,
@@ -35,6 +47,12 @@ export class NewsletterRepo {
           viewcount: true,
           createdAt: true,
           content: true,
+        },
+        where: {
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
         skip: offset,
         take: limit,

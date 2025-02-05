@@ -10,11 +10,13 @@ import {
   ParseIntPipe,
   ValidationPipe,
   Post,
+  Body,
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { NewsletterRepo } from '../newsletter.repository';
 import {
-  NewsletterDto,
+  NewsletterQueryDto,
+  NewsletterBodyDto,
   NewsletterTrendDto,
   NewsletterCategoryDto,
   NewsletterRandomDto,
@@ -27,15 +29,26 @@ export class BasicRepositoryController {
   constructor(private readonly newsletterRepo: NewsletterRepo) {}
 
   @Get()
-  async getNewsletters(@Query() query: NewsletterDto) {
+  async getNewsletters(
+    @Query() query: NewsletterQueryDto,
+    @Body() body: NewsletterBodyDto,
+  ) {
     const offset = Number(query.offset);
     const limit = Number(query.limit);
+    const startDate = body.startDate ? dayjs(body.startDate).toDate() : null;
+    const endDate = body.endDate ? dayjs(body.endDate).toDate() : null;
 
     if (query.trend) {
       const trend = Boolean(query.trend);
       return {
         message: `인기 순으로 ${trend ? '내림차순' : '오름차순'} 조회 성공`,
-        data: await this.newsletterRepo.getNewsletterList(offset, limit, trend),
+        data: await this.newsletterRepo.getNewsletterList(
+          offset,
+          limit,
+          trend,
+          startDate,
+          endDate,
+        ),
       };
     }
 
