@@ -77,7 +77,6 @@ export const newsletterTemplate = (newsletter: Newsletter) => {
                         font-size: 13px;
                         color: rgba(55, 53, 47, 0.5);
                         ">
-                        카테고리 ID: ${newsletter.categoryId} • 
                         조회수: ${newsletter.viewcount} • 
                         작성일: ${new Date(newsletter.createdAt).toLocaleDateString('ko-KR')}
                         </div>
