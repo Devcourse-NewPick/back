@@ -10,13 +10,11 @@ import {
   ParseIntPipe,
   ValidationPipe,
   Post,
-  Body,
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { NewsletterRepo } from '../newsletter.repository';
 import {
   NewsletterQueryDto,
-  NewsletterBodyDto,
   NewsletterTrendDto,
   NewsletterCategoryDto,
   NewsletterRandomDto,
@@ -28,34 +26,57 @@ import dayjs from 'dayjs';
 export class BasicRepositoryController {
   constructor(private readonly newsletterRepo: NewsletterRepo) {}
 
-  @Get()
-  async getNewsletters(
-    @Query() query: NewsletterQueryDto,
-    @Body() body: NewsletterBodyDto,
-  ) {
+  @Get('')
+  async getNewsletters(@Query() query: NewsletterQueryDto) {
     const offset = Number(query.offset);
     const limit = Number(query.limit);
-    const startDate = body.startDate ? dayjs(body.startDate).toDate() : null;
-    const endDate = body.endDate ? dayjs(body.endDate).toDate() : null;
+    const trend = query.trend;
+    console.log('trend', trend);
 
-    if (query.trend) {
-      const trend = Boolean(query.trend);
+    let startDate = null;
+    let endDate = null;
+
+    if (query.startDate && dayjs(query.startDate).isValid()) {
+      startDate = dayjs(query.startDate).toDate();
+    }
+
+    if (query.endDate && dayjs(query.endDate).isValid()) {
+      endDate = dayjs(query.endDate).toDate();
+    }
+    if (trend === undefined) {
       return {
-        message: `인기 순으로 ${trend ? '내림차순' : '오름차순'} 조회 성공`,
+        message: '정렬 없이 목록 조회 성공',
         data: await this.newsletterRepo.getNewsletterList(
           offset,
           limit,
-          trend,
           startDate,
           endDate,
         ),
       };
     }
 
-    return {
-      message: '정렬 없이 목록 조회 성공',
-      data: await this.newsletterRepo.getNewsletterList(offset, limit),
-    };
+    if (trend) {
+      return {
+        message: `인기 순으로 내림차순 조회 성공`,
+        data: await this.newsletterRepo.getNewsletterList(
+          offset,
+          limit,
+          startDate,
+          endDate,
+          trend,
+        ),
+      };
+    } else {
+      return {
+        message: '오름차순 정렬 목록 조회 성공',
+        data: await this.newsletterRepo.getNewsletterList(
+          offset,
+          limit,
+          startDate,
+          endDate,
+        ),
+      };
+    }
   }
 
   /**

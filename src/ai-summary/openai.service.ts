@@ -69,11 +69,14 @@ export class OpenAiService {
       const html = await this.htmlFormatterService.formatHtml(summary);
 
       const newsletterTemporary = {
+        message:
+          '요약 완료 이 요청은 테스트 요약입니다. DB에 저장되지 않습니다.',
         title: title,
         summary: summary,
         newslinks: newslinks,
         categoryId: categoryId,
         html: html,
+        imageUrl: news.map((item) => item.images).toString(),
       };
 
       if (test) {
