@@ -7,7 +7,7 @@ export const newsletterTemplate = (newsletter: Newsletter) => {
       : newsletter.content;
 
   return `
-        <a href="${process.env.FRONTEND_URL}/newsletters/${newsletter.id}" 
+        <a href="${process.env.FRONTEND_URL}/articles/detail/${newsletter.id}" 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     role="link" 
