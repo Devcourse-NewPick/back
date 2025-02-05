@@ -7,7 +7,7 @@ export const newsletterTemplate = (newsletter: Newsletter) => {
       : newsletter.content;
 
   return `
-        <a href="${process.env.FRONTEND_URL}/newsletters/${newsletter.id}" 
+        <a href="${process.env.FRONTEND_URL}/articles/detail/${newsletter.id}" 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     role="link" 
@@ -77,7 +77,6 @@ export const newsletterTemplate = (newsletter: Newsletter) => {
                         font-size: 13px;
                         color: rgba(55, 53, 47, 0.5);
                         ">
-                        카테고리 ID: ${newsletter.categoryId} • 
                         조회수: ${newsletter.viewcount} • 
                         작성일: ${new Date(newsletter.createdAt).toLocaleDateString('ko-KR')}
                         </div>
