@@ -71,30 +71,9 @@ export class AuthController {
     });
 
     const frontendUrl = process.env.FRONTEND_URL || 'https://www.newpick.site';
-
-    return res.send(`
-      <script>
-        try {
-          const user = ${JSON.stringify({
-            email: user.email,
-            username: user.username,
-            profileImg: user.profileImg,
-          })
-            .replace(/\\/g, '\\\\')
-            .replace(/'/g, "\\'")};
-    
-          if (window.opener) {
-            window.opener.postMessage({ type: 'oauthSuccess', user }, '${frontendUrl}');
-          } else if (window.parent) {
-            window.parent.postMessage({ type: 'oauthSuccess', user }, '${frontendUrl}');
-          }
-          
-          window.close();
-        } catch (err) {}
-      </script>
-    `);
+    return res.redirect(`${frontendUrl}?oauthSuccess=true`);
   }
-
+    
   /**
    * Refresh Token을 사용하여 새로운 Access Token 발급
    * authGuard를 제거하여 만료된 Access Token도 허용
