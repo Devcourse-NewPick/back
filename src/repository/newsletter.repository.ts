@@ -12,7 +12,8 @@ export class NewsletterRepo {
     limit: number,
     startDate: Date | null,
     endDate: Date | null,
-    trend?: boolean,
+    trend?: boolean | null,
+    categoryId?: number | null,
   ) {
     const whereClause: any = {};
 
@@ -37,12 +38,18 @@ export class NewsletterRepo {
       skip: offset,
       take: limit,
       ...(trend && { orderBy: { viewcount: trend ? 'desc' : 'asc' } }),
+      ...(categoryId && { where: { categoryId } }),
     });
 
     return result;
   }
 
-  async getNewsletter(offset: number, limit: number, trend?: boolean) {
+  async getNewsletter(
+    offset: number,
+    limit: number,
+    trend?: boolean | null,
+    categoryId?: number | null,
+  ) {
     if (trend) {
       const orderBy = trend ? 'desc' : 'asc';
       return this.prisma.newsletter.findMany({
@@ -51,11 +58,13 @@ export class NewsletterRepo {
         orderBy: {
           viewcount: orderBy,
         },
+        ...(categoryId && { where: { categoryId } }),
       });
     } else {
       return this.prisma.newsletter.findMany({
         skip: offset,
         take: limit,
+        ...(categoryId && { where: { categoryId } }),
       });
     }
   }

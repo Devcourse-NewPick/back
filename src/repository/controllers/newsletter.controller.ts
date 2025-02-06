@@ -31,6 +31,7 @@ export class BasicRepositoryController {
     const offset = Number(query.offset);
     const limit = Number(query.limit);
     const trend = query.trend;
+    const categoryId = query.categoryId || null;
     console.log('trend', trend);
 
     let startDate = null;
@@ -51,6 +52,8 @@ export class BasicRepositoryController {
           limit,
           startDate,
           endDate,
+          null,
+          categoryId,
         ),
       };
     }
@@ -64,6 +67,7 @@ export class BasicRepositoryController {
           startDate,
           endDate,
           trend,
+          categoryId,
         ),
       };
     } else {
