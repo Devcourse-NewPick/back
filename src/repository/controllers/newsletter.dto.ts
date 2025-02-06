@@ -37,6 +37,10 @@ export class NewsletterQueryDto {
   @IsOptional()
   @IsString({ message: 'endDate는 문자열이어야 합니다' })
   endDate?: string;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'categoryId는 숫자여야 합니다' })
+  categoryId?: number;
 }
 export class NewsletterBodyDto {
   @IsOptional()
