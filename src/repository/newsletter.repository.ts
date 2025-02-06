@@ -203,6 +203,29 @@ export class NewsletterRepo {
       },
     });
   }
+  /**
+   * 모든 카테고리에 대해 가장 최신의 뉴스레터 한 건씩 조회
+   */
+  async getLatestNewslettersForAllCategories(): Promise<Newsletter[]> {
+    // 각 카테고리별로 가장 최신의 뉴스레터를 가져오기 위해 distinct 조회
+    const categories = await this.prisma.newsletter.findMany({
+      select: { categoryId: true },
+      distinct: ['categoryId'],
+    });
+
+    const newsletters: Newsletter[] = [];
+    // 각 카테고리별로 가장 최신 뉴스레터 조회
+    for (const { categoryId } of categories) {
+      const newsletter = await this.prisma.newsletter.findFirst({
+        where: { categoryId },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (newsletter) {
+        newsletters.push(newsletter);
+      }
+    }
+    return newsletters;
+  }
 
   async addViewcount(id: number) {
     id = Number(id);

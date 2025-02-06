@@ -85,29 +85,30 @@ export class BasicRepositoryController {
    * 전달되지 않으면 모든 카테고리에 대해 어제의 뉴스레터(각 카테고리 1건)를 조회합니다.
    */
   @Get('trends')
-  async getYesterdaysNewsletters(@Query() query: NewsletterTrendDto) {
+  async getLatestNewsletters(@Query() query: NewsletterTrendDto) {
     if (query.categoryId) {
-      const newsletter =
-        await this.newsletterRepo.getNewsletterFromYesterdayByCategory(
-          Number(query.categoryId),
-        );
-      if (!newsletter) {
+      const newsletter = await this.newsletterRepo.getNewsletterByCategoryId(
+        Number(query.categoryId),
+        0, // 최신 뉴스 1개 가져오기
+        1,
+      );
+      if (!newsletter.length) {
         throw new NotFoundException(
-          '해당 카테고리의 전날 뉴스레터가 없습니다.',
+          '해당 카테고리의 최신 뉴스레터가 없습니다.',
         );
       }
       return {
-        message: '해당 카테고리 전날 뉴스레터 조회 성공',
-        data: newsletter,
+        message: '해당 카테고리 최신 뉴스레터 조회 성공',
+        data: newsletter[0],
       };
     } else {
       const newsletters =
-        await this.newsletterRepo.getNewslettersFromYesterdayForAllCategories();
+        await this.newsletterRepo.getLatestNewslettersForAllCategories();
       if (!newsletters.length) {
-        throw new NotFoundException('전날 뉴스레터가 없습니다.');
+        throw new NotFoundException('각 카테고리의 최신 뉴스레터가 없습니다.');
       }
       return {
-        message: '모든 카테고리 전날 뉴스레터 조회 성공',
+        message: '모든 카테고리 최신 뉴스레터 조회 성공',
         data: newsletters,
       };
     }
